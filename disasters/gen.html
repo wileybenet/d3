@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    </head>
+    <body>
+        <script>
+            jQuery(document).ready(function() {
+            var c = ['rgb(227,246,255)', 'rgb(206,238,255)', 'rgb(184,231,254)', 'rgb(163,224,254)', 'rgb(142,217,254)', 'rgb(121,209,254)', 'rgb(99,202,253)', 'rgb(78,195,253)', 'rgb(57,188,253)', 'rgb(36,181,253)'];
+            var html = "";
+            $.each(c, function(k,v) {
+                html += ".q"+k+" { fill:"+v+";  background:"+v+"; } <br />";
+            });
+            $('#cont').append(html);
+            });
+        </script>
+        <div id="cont"></div>
+    </body>
+</html>
