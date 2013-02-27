@@ -8,15 +8,16 @@ body {
 }
 
     #vis-title-box {
+        min-width:215px;
         position:absolute;
         margin-top:-32px;
         margin-left:-222px;
-        top:50%;
+        top:45%;
         left:50%;
         /*color:rgb(16,161,233);*/
         color:#999;
-        opacity:.8;
-        z-index:5000;
+        opacity:1;
+        z-index:500;
     }
         #vis-title {
             font-size:26px;
@@ -27,10 +28,47 @@ body {
         .vis-subtitle {
             font-size:16px;
         }
+            .vis-intro-content {
+                font-size:16px;
+                color:#333;
+                margin:10px 0 0 5px;
+                padding:5px 10px 5px 10px;
+                width:246px;
+                display:none;
+            }
+            .vis-intro-next {
+                position:absolute;
+                top:190px;
+                right:0px;
+                display:none;
+            }
+            .vis-intro-skip {
+                position:absolute;
+                top:190px;
+                left:0px;
+                display:none;
+                opacity:.25;
+            }
+            .vis-intro-skip:hover {
+                opacity:1;
+            }
+            .vis-intro-disable-screen {
+                width:50%;
+                height:90%;
+                position:fixed;
+                top:5%;
+                left:50%;
+                margin-left:65px;
+                z-index:10000;
+                display:none;
+            }
+            #intro-replay {
+                font-size:12px;
+            }
     #loading-screen {
         position:absolute;
-        background:rgba(255,255,255,1) url(images/loading.gif) center center no-repeat;
-        z-index:3000;
+        background:rgba(255,255,255,.9) url(images/loading.gif) center 45% no-repeat;
+        z-index:400;
     }
 
     #map {
@@ -193,15 +231,12 @@ body {
                 margin-bottom:-8px;
                 padding:0 7px 0 7px;
             }
-            .subdue {
-                font-size:12px;
-                color:#666;
-            }
 
 
         .map-box {
             background:rgba(255,255,255,.8);
             box-shadow: 0 1px 5px rgba(0,0,0,.4);
+            position:fixed;
             z-index:1000;
         }
 
@@ -213,6 +248,9 @@ body {
                 right:0px;
                 display:none;
                 position:absolute;
+                z-index:1000;
+                background:rgba(255,255,255,.8);
+                box-shadow: 0 1px 5px rgba(0,0,0,.4);
                 z-index:1000;
             }
                 .country-data-title {
@@ -236,12 +274,10 @@ body {
                     }
 
         #map-scale-box {
-            width:30px;
+            width:auto;
             height:auto;
-            padding:6px 0 6px 6px;
-            position:absolute;
-            top:0px;
-            right:0px;
+            padding:6px;
+            display:none;
         }
             .map-scale-units {
                 position:absolute;
@@ -278,7 +314,7 @@ body {
                 font-size:14px;
                 padding-right:33px;
                 text-align:right;
-                right:10px;
+                right:6px;
             }
                 .map-scale-low {
                     bottom:6px;
@@ -300,8 +336,8 @@ body {
                     text-align:center;
                     padding:3px 10px 3px 10px;
                     width:118px;
-                    color:rgb(120,120,120);
-                    background:#FFF;
+                    color:rgb(20, 46, 240);
+                    background:rgba(255,255,255,.8);
                     border-right:3px solid #FFF;
                     border-left:3px solid #FFF;
                     border-top:1px solid #FFF;
@@ -317,15 +353,30 @@ body {
                     border-color:rgb(20, 46, 240);
                     font-weight:normal;
                 }
+            #map-scale-info {
+                top:100%;
+                right:6px;
+                margin-top:12px;
+            }
+            .map-info-pop {
+                width:112px;
+                height:auto;
+                padding:7px 14px 7px 14px;
+                color:#666;
+                font-size:14px;
+                position:absolute;
+                background:rgba(255,255,255,.8);
+                box-shadow: 0 1px 5px rgba(0,0,0,.4);
+                z-index:1000;
+                display:none;
+            }
                 
 
         #map-filter-box {
             width:auto;
             height:270px;
-            position:absolute;
             padding:10px 10px 0px 15px;
-            left:0px;
-            bottom:0px;
+            display:none;
         }
             .map-filter-title {
                 font-weight:bold;
@@ -379,11 +430,8 @@ body {
         #map-casualties-box, #map-time-box {
             width:408px;
             height:60px;
-            position:absolute;
             padding:5px 16px 0px 16px;
-            bottom:0px;
-            left:50%;
-            margin-left:-220px;
+            display:none;
         }
             .slider-label {
                 font-size:14px;
@@ -445,6 +493,9 @@ body {
             }
             #map-time-reset {
                 margin:4px 6px 0 0;
+                padding-right:5px;
+                padding-left:5px;
+                margin-top:2px;
                 font-weight:bold;
                 font-size:12px;
             }
@@ -474,6 +525,10 @@ body {
 /* -----     GENERAL CLASSES     ----- */
 sup {
     font-size:10px;
+}
+.subdue {
+    font-size:12px;
+    color:#666;
 }
 .hidden { 
     display:none !important; 
@@ -548,3 +603,25 @@ sup {
     -moz-transform:skewX(-45deg);
     -webkit-transform:skewX(-45deg);
 }
+.uarr {
+    width:1px;
+    height:2px;
+    position:absolute;
+    border:9px solid rgba(0,0,0,.08);
+    border-left-color:transparent;
+    border-right-color:transparent;
+    border-top:0px;
+    top:-11px;
+    right:6px;
+}  
+    .uarr-fill {
+        width:0px;
+        height:2px;
+        position:absolute;
+        border:9px solid #FFF;
+        border-left-color:transparent;
+        border-right-color:transparent;
+        border-top:0px;
+        bottom:-10px;
+        right:-9px;
+    }  

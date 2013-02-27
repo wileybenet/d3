@@ -67,3 +67,9 @@ function getReadableDate(arr) {
 function getReadableMY(arr) {
     return '<div class="map-time-month">'+months[arr[0]]+'</div> '+arr[2];
 }
+
+function getPadding(id) {
+    return {v:parseInt($(id).css("padding-top"))+parseInt($(id).css("padding-bottom")),
+            h:parseInt($(id).css("padding-left"))+parseInt($(id).css("padding-right"))
+        };
+}

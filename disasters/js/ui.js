@@ -1,9 +1,12 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.0.0
+// v 1.0.5
 //
 // UI render calls and general interaction
-//
+// 
+// PLAY
+//      Intro
+// 
 // RENDER
 //      Binned Country Scale
 //      Timespan Slider
@@ -15,6 +18,119 @@
 //      Zoom in to Country Window
 //      Zoom out of Country Window
 //      Page Signature
+
+
+//---------------------------------------------------------------------------------- Binned Country Scale ---------------------------------
+
+World.SVG.prototype.playIntro = function(replay) {
+    var this_ = this;
+    this.introStep = 0;
+    
+    // for redoing the intro
+    $('.map-box').hide();
+    $('#intro-replay').remove();
+    $('#loading-screen').show();
+    $('#vis-title-box').animate({top:((replay)?"30%":"46%"), left:"50%"});
+    
+    // initiate
+    $('#loading-screen').css({"background-image":"none"});
+    $('#vis-title-box').animate({top:"30%"}, function() {
+        $('.vis-intro-disable-screen').show();
+        $('.vis-intro-content').html(this_.introSteps.text[0]).fadeIn();
+        $('.vis-intro-next').html("Next &raquo;");
+        $('.vis-intro-next, .vis-intro-skip').fadeIn();
+    });
+}
+
+World.SVG.prototype.nextIntroStep = function() {
+    var this_ = this;
+    if (this_.introStep >= this_.introSteps.text.length-1) {
+        $('.vis-intro-next').html("Start &raquo;");
+    }
+    $('.vis-intro-content').hide().html(this_.introSteps.text[this_.introStep]).fadeIn();
+    var id = this_.introSteps.target[this_.introStep];
+    $(id).css({left:"50%", top:"30%", "margin-left":85+this_.introSteps.correction[this_.introStep]+"px", "margin-top":"0px"}).delay(200).fadeIn();
+    if (this_.introStep > 1) {
+        var pid = this_.introSteps.target[this_.introStep-1];
+        var pad = getPadding(pid);
+        var targetLoc = [
+                            {},
+                            {top:"100%", left:"0px", "margin-left":"0px", "margin-top":-$(pid).height()-pad.v+"px", opacity:".3"},
+                            {left:"50%", top:"100%", "margin-left":"-220px", "margin-top":-$(pid).height()-pad.v+"px", opacity:".3"},
+                            {left:"50%", top:"0px", "margin-left":"-220px", opacity:".3"},
+                            {left:"100%", top:"0px", "margin-left":"0px", "margin-left":-$(pid).width()-pad.h+"px", opacity:".3"}
+                        ];
+        $(this_.introSteps.target[this_.introStep-1]).animate(targetLoc[this_.introStep-1]);
+    }
+}
+
+World.SVG.prototype.finishIntro = function() {
+    var this_ = this;
+    $('.intro').hide();
+    $('#loading-screen').fadeOut();
+    $('#vis-title-box').animate({top:"33px", left:"230px"}, function() {
+        setTimeout(function() {
+            d3.select("#vis-title-box")
+                .append("div")
+                .attr("id", "intro-replay")
+                .attr("class", "action")
+                .attr("style", "margin-top:50px;")
+                .html("Replay Intro &nbsp;");
+                $('#intro-replay').animate({"margin-top":"5px"});
+        }, 500);
+    });
+    $('.map-box').animate({opacity:"1"});
+}
+
+World.SVG.prototype.loadIntro = function() {
+    
+    var this_ = this;
+    this.introSteps = {};
+    this.introSteps.text = [
+        "Welcome to the global disaster interactive visualization. The following is a brief introduction to the interface.",
+        "Select disasters types in the filter box. <br /> <br /><span class=\"subdue\">* Processing and animation will be slower when many disaster types are selected.</span>",
+        "View any range of casualties, from 10 to 6,000,000.",
+        "View any timespan between January 1900 and December 2008. Play animations of disasters over the past century.",
+        "Select a category of underlying data to be seen in a binned scale.<br /> <br /><span class=\"subdue\">* [ blank ] displays no underlying data</span>",
+        "Those are the controls, now explore the last century of disasters!"
+    ];
+    this.introSteps.target = [
+        "",
+        "#map-filter-box",
+        "#map-casualties-box",
+        "#map-time-box",
+        "#map-scale-box",
+    ];
+    this.introSteps.correction = [0,0,0,0,150,0];
+    
+    $(document).delegate(".vis-intro-next, .vis-intro-skip", "click", function() {
+        this_.introStep += 1;
+        if ($(this).text() == "Skip Intro")
+            this_.introStep = this_.introSteps.text.length;
+        if (this_.introStep < this_.introSteps.text.length) {
+            this_.nextIntroStep();
+        } else {
+            $('.map-box').css({opacity:".3"}).show();
+            $.each(this_.introSteps.target, function(k,v) {
+                var pad = getPadding(v);
+                var targetLoc = [
+                                    {},
+                                    {top:"100%", left:"0px", "margin-left":"0px", "margin-top":-$(v).height()-pad.v+"px"},
+                                    {left:"50%", top:"100%", "margin-left":"-220px", "margin-top":-$(v).height()-pad.v+"px"},
+                                    {left:"50%", top:"0px", "margin-left":"-220px"},
+                                    {left:"100%", top:"0px", "margin-left":"0px", "margin-left":-$(v).width()-pad.h+"px"}
+                                ];
+                $(v).css(targetLoc[k]);
+            });
+            this_.finishIntro();
+        }
+    });
+    $(document).delegate("#intro-replay", "click", function() {
+        this_.playIntro(true);
+    });
+}
+
+
 
 //---------------------------------------------------------------------------------- Binned Country Scale ---------------------------------
 
@@ -80,6 +196,20 @@ World.SVG.prototype.renderScale = function() {
         this_.updateCountries();
         this_.updateScale();
     });
+    
+    $(document).delegate("#map-scale-box", "mouseenter mouseleave", function(e) {
+        if (e.type === "mouseenter") {
+            $(this).find(".map-info-pop").stop(true).fadeIn();
+        } else {
+            $(this).find(".map-info-pop").stop(true).fadeOut();
+        }
+    });
+    
+    d3.select("#map-scale-box")
+        .append("div")
+        .attr("id", "map-scale-info")
+        .attr("class", "map-info-pop")
+        .html('<div class="uarr"><div class="uarr-fill"></div></div>Hover over scale to highlight the country groups');
 }
 
 World.SVG.prototype.updateScale = function() {
@@ -139,7 +269,7 @@ World.SVG.prototype.renderTimeSlider = function() {
     d3.select("#map-time-box")
         .append("span")
         .attr("id", "map-time-reset")
-        .attr("class", "action")
+        .attr("class", "action button")
         .html("Reset");
     
     d3.select("#map-time-box")
@@ -387,7 +517,6 @@ World.SVG.prototype.renderCountryWindow = function() {
     
     d3.select("body")
         .append("div")
-        .attr("class", "map-box")
         .attr("id", "country-data-box");
         
     d3.select("#country-data-box")
@@ -517,9 +646,15 @@ World.SVG.prototype.renderSignature = function() {
     d3.select("body")
         .append("div")
         .attr("id", "signature")
-        .html('&copy; 2013 <span class="action">Wiley Bennett</a>');
+        .html("&copy; ");
     
-    $(document).delegate("#signature", "click", function() {
+    d3.select("#signature")
+        .append("span")
+        .attr("id", "portfolio-link")
+        .attr("class", "action")
+        .html("Wiley Bennett");
+    
+    $(document).delegate("#portfolio-link", "click", function() {
         window.open("http://w.bmdware.com/portfolio/");
         window.focus();
     });

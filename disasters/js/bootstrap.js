@@ -1,6 +1,6 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.0.0
+// v 1.0.5
 // 
 // Bootstrap script
 // Defines the namespace and prototype functions for rendering and updating data
@@ -10,12 +10,6 @@ var WorldSVG;
 
 function init(error, world, cdata, disasters) {
     WorldSVG = new World.SVG(error, world, cdata, disasters);
-    setTimeout(function() {
-        $('#vis-title-box').fadeOut(function() {
-            $(this).css({top:"31px", left:"230px"}).fadeIn();
-        });
-        $('#loading-screen').fadeOut();
-    }, 1500);
 }
 
 World = {};
@@ -40,12 +34,6 @@ World.SVG = function(error, world, cdata, disasters) {
     this.icon = {
         play: '<span class="play-icon"></span>',
         pause: '<span class="pause-icon" style="margin-left:5px;"></span><span class="pause-icon" style="margin-right:5px;"></span>'
-    };
-    this.reset = {
-        time: {
-                openDate: this_.openDate,
-                closeDate: this_.closeDate
-            }
     };
     
     this.world = world;
@@ -108,10 +96,10 @@ World.SVG = function(error, world, cdata, disasters) {
     
     // load-in settings
     this.cData = "gdp";
-    this.maxCas = 6000000;
-    this.minCas = 10;
-    this.openDate = [1,1,1900];
-    this.closeDate = [12,31,2008];
+    this.maxCas = 1000000;
+    this.minCas = 100;
+    this.openDate = [1,1,1930];
+    this.closeDate = [12,31,2000];
     this.filters = [
 //                this_.filterSet[0],
 //                this_.filterSet[1],
@@ -125,6 +113,14 @@ World.SVG = function(error, world, cdata, disasters) {
 //                this_.filterSet[9],
 //                this_.filterSet[10]
             ];
+            
+    // reset object
+    this.reset = {
+        time: {
+                openDate: this_.openDate,
+                closeDate: this_.closeDate
+            }
+    };
     
     this.binRange = 10;
 
@@ -169,6 +165,9 @@ World.SVG = function(error, world, cdata, disasters) {
     
     // show disasters
     this.updateDisasters(true);
+    
+    this.loadIntro();
+    this.playIntro();
 }
 
 World.SVG.prototype.initData = function() {
