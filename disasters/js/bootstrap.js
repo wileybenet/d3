@@ -25,7 +25,7 @@ World.SVG = function(error, world, cdata, disasters) {
                         "Extreme Temperature",
                         "Flood",
                         "Industrial Accident",
-                        "Mass Movement",
+                        "Falling Mass",
                         "Storm",
                         "Transportation",
                         "Wildfire",
@@ -77,7 +77,7 @@ World.SVG = function(error, world, cdata, disasters) {
             units: "from Jan 1900 to Dec 2008",
             tooltip: "Total Casualties: ",
             binLow: 0,
-            binHigh: 300000
+            binHigh: 1000000
         },
         blank: {
             pre: "",

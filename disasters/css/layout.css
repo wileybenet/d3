@@ -41,13 +41,15 @@ body {
                 top:190px;
                 right:0px;
                 display:none;
+                font-weight:bold;
+                font-size:18px;
             }
             .vis-intro-skip {
                 position:absolute;
                 top:190px;
                 left:0px;
                 display:none;
-                opacity:.25;
+                opacity:.5;
             }
             .vis-intro-skip:hover {
                 opacity:1;
@@ -65,11 +67,11 @@ body {
             #intro-replay {
                 font-size:12px;
             }
-    #loading-screen {
-        position:absolute;
-        background:rgba(255,255,255,.9) url(images/loading.gif) center 45% no-repeat;
-        z-index:400;
-    }
+        #loading-screen {
+            position:absolute;
+            background:rgba(255,255,255,.83) url(images/loading.gif) center 45% no-repeat;
+            z-index:400;
+        }
 
     #map {
         position:absolute;
@@ -180,7 +182,7 @@ body {
                 background-color:rgba(89,178,0,.4) !important;
                 border-color:rgb(89,178,0) !important;
             }
-            .mass-movement-loc {
+            .falling-mass-loc {
                 fill:rgb(178,178,0);
                 stroke:rgb(178,178,0);
                 background-color:rgba(178,178,0,.4) !important;

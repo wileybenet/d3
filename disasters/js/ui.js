@@ -90,9 +90,9 @@ World.SVG.prototype.loadIntro = function() {
         "Welcome to the global disaster interactive visualization. The following is a brief introduction to the interface.",
         "Select disasters types in the filter box. <br /> <br /><span class=\"subdue\">* Processing and animation will be slower when many disaster types are selected.</span>",
         "View any range of casualties, from 10 to 6,000,000.",
-        "View any timespan between January 1900 and December 2008. Play animations of disasters over the past century.",
-        "Select a category of underlying data to be seen in a binned scale.<br /> <br /><span class=\"subdue\">* [ blank ] displays no underlying data</span>",
-        "Those are the controls, now explore the last century of disasters!"
+        "View any timespan between January 1900 and December 2008. Click play to watch animations of disasters over time.",
+        "Select a category of underlying data to be seen in each country on a color value scale.<br /> <br /><span class=\"subdue\">* [ blank ] displays no underlying data</span>",
+        "Those are the controls, now go on and explore the last century of disasters!"
     ];
     this.introSteps.target = [
         "",
@@ -105,7 +105,7 @@ World.SVG.prototype.loadIntro = function() {
     
     $(document).delegate(".vis-intro-next, .vis-intro-skip", "click", function() {
         this_.introStep += 1;
-        if ($(this).text() == "Skip Intro")
+        if ($(this).text() == "Skip")
             this_.introStep = this_.introSteps.text.length;
         if (this_.introStep < this_.introSteps.text.length) {
             this_.nextIntroStep();
