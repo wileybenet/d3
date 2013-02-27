@@ -218,6 +218,7 @@ body {
                 .country-data-title {
                     color:#555;
                     font-size:28px;
+                    margin-right:15px;
                     font-weight:bold;
                     margin-bottom:6px;
                 }
@@ -247,7 +248,7 @@ body {
                 width:180px;
                 height:30px;
                 right:42px;
-                top:27px;
+                top:28px;
                 color:#999;
                 font-size:12px;
                 text-align:right;
@@ -298,25 +299,25 @@ body {
                 .map-scale-choice {
                     text-align:center;
                     padding:3px 10px 3px 10px;
-                    width:120px;
-                    color:#666;
+                    width:118px;
+                    color:rgb(120,120,120);
                     background:#FFF;
-                    border-right:2px solid #FFF;
-                    border-left:2px solid #FFF;
+                    border-right:3px solid #FFF;
+                    border-left:3px solid #FFF;
+                    border-top:1px solid #FFF;
+                    border-bottom:1px solid #FFF;
                     margin-bottom:2px;
                     position:relative;
                     cursor:pointer;
                 }
-                .map-scale-choice:hover {
-                    border-color:rgb(20, 46, 240);
+                .map-scale-choice-selected, .map-scale-choice:hover {
+/*                    background:#EEE !important;*/
                     color:#000;
-                }
-                .map-scale-choice-selected {
-                    background:#CCC !important;
-                    color:#000;
+                    box-shadow:inset 0 1px 3px rgba(0,0,0,.3);
                     border-color:rgb(20, 46, 240);
                     font-weight:normal;
                 }
+                
 
         #map-filter-box {
             width:auto;
@@ -425,7 +426,7 @@ body {
                 display:inline-block;
             }
             #map-time-watermark {
-                position:absolute;
+                position:fixed;
                 bottom:10%;
                 left:50%;
                 margin-left:-12%;

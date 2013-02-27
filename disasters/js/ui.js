@@ -48,7 +48,7 @@ World.SVG.prototype.renderScale = function() {
     $(document).delegate(".map-scale-bin", "mouseenter", function() {
         this_.curBin = $(this).attr("class");
         this_.curBin = this_.curBin.split(" ");
-        this_.curBin = this_.curBin[0];
+        this_.curBin = this_.curBin[1];
             
         this_.selCont = [];
             $.each(this_.countries, function(k,v) {
@@ -66,7 +66,7 @@ World.SVG.prototype.renderScale = function() {
     $(document).delegate(".map-scale-bin", "mouseleave", function() {
         var bin = $(this).attr("class");
         bin = bin.split(" ");
-        bin = bin[0];
+        bin = bin[1];
         d3.selectAll('.'+bin)
             .classed("selected", false);
         $('.country-label').hide();

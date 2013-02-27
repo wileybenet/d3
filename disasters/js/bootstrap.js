@@ -89,7 +89,7 @@ World.SVG = function(error, world, cdata, disasters) {
             units: "from Jan 1900 to Dec 2008",
             tooltip: "Total Casualties: ",
             binLow: 0,
-            binHigh: 100000
+            binHigh: 300000
         },
         blank: {
             pre: "",
