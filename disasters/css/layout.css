@@ -72,6 +72,15 @@ body {
             background:rgba(255,255,255,.83) url(images/loading.gif) center 45% no-repeat;
             z-index:400;
         }
+        
+    #tot-cas-fade {
+        top:100px;
+        left:0px;
+        width:auto;
+        height:auto;
+        position:absolute;
+        white-space:nowrap;
+    }
 
     #map {
         position:absolute;
@@ -182,7 +191,7 @@ body {
                 background-color:rgba(89,178,0,.4) !important;
                 border-color:rgb(89,178,0) !important;
             }
-            .falling-mass-loc {
+            .famine-loc {
                 fill:rgb(178,178,0);
                 stroke:rgb(178,178,0);
                 background-color:rgba(178,178,0,.4) !important;
@@ -194,7 +203,7 @@ body {
                 background-color:rgba(0,178,89,.4) !important;
                 border-color:rgb(0,178,89) !important;
             }
-            .wildfire-loc {
+            .fire-loc {
                 fill:rgb(89,0,178);
                 stroke:rgb(89,0,178);
                 background-color:rgba(89,0,178,.4) !important;
@@ -375,7 +384,7 @@ body {
                 
 
         #map-filter-box {
-            width:auto;
+            width:164px;
             height:270px;
             padding:10px 10px 0px 15px;
             display:none;
@@ -418,6 +427,13 @@ body {
                     }
                     .clear-back {
                         background-color:transparent !important;
+                    }
+                    .filter-tot-count {
+                        position:absolute;
+                        left:180px;
+                        top:1px;
+                        color:#999;
+                        font-size:12px;
                     }
                 .map-filter-checked {
                     padding-left:2px;

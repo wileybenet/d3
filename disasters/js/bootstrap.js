@@ -22,15 +22,18 @@ World.SVG = function(error, world, cdata, disasters) {
                         "Drought",
                         "Earthquake",
                         "Epidemic",
-                        "Extreme Temperature",
                         "Flood",
                         "Industrial Accident",
-                        "Falling Mass",
+                        "Famine",
                         "Storm",
                         "Transportation",
-                        "Wildfire",
+                        "Fire",
                         "Miscellaneous"
                      ];
+    this.subCatTotSet = {};
+    $.each(this_.filterSet, function(k,v) {
+        this_.subCatTotSet[v] = 0;
+    });
     this.icon = {
         play: '<span class="play-icon"></span>',
         pause: '<span class="pause-icon" style="margin-left:5px;"></span><span class="pause-icon" style="margin-right:5px;"></span>'
@@ -107,11 +110,10 @@ World.SVG = function(error, world, cdata, disasters) {
 //                this_.filterSet[3],
 //                this_.filterSet[4],
 //                this_.filterSet[5],
-//                this_.filterSet[6],
-                this_.filterSet[7],
+                this_.filterSet[6],
+//                this_.filterSet[7],
 //                this_.filterSet[8],
-//                this_.filterSet[9],
-//                this_.filterSet[10]
+//                this_.filterSet[9]
             ];
             
     // reset object
@@ -160,6 +162,7 @@ World.SVG = function(error, world, cdata, disasters) {
     this.renderTimeSlider();
     this.renderFilter();
     this.renderCountryWindow();
+    this.renderTotCasCounts();
     this.renderHelp();
     this.renderSignature();
     
@@ -404,6 +407,7 @@ World.SVG.prototype.updateCountries = function() {
 World.SVG.prototype.updateDisasters = function(boot, zoomOut) {
     var this_ = this;
     this_.disasterSet = [];
+    this_.clearCatSubTot();
     this_.disasters.forEach(function(d, i) {
         d.casualty = parseInt(d.casualty);
         
@@ -428,6 +432,7 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut) {
                                 
                             } else {
                                 this_.disasterSet.push(d);
+                                this_.subCatTotSet[d.type] += d.casualty;
                             }
                         }
                     });
@@ -435,6 +440,8 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut) {
             }
         }
     });
+    
+    this.updateTotCasCounts();
         
     this_.disasterOb = this_.g.selectAll(".disaster-loc").data(this_.disasterSet, function(d) {return d.uid});
     
@@ -484,15 +491,7 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut) {
         })
         .on("mouseout",  function(d,i) {
             this_.localDData.classed("hidden", true)
-        }).on("click", function(d) {
-            var off = $('#map').offset();
-            
-            var mouse = d3.mouse(this_.svg.node()).map( function(d) {return parseInt(d);} );
-            
-            var m = {left:mouse[0], top:mouse[1]};
-            
-            
-        });
+        })
         
     if (boot) {
         d3.selectAll('.country-boundary, .country')

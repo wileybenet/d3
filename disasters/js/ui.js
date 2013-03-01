@@ -30,7 +30,7 @@ World.SVG.prototype.playIntro = function(replay) {
     $('.map-box').hide();
     $('#intro-replay').remove();
     $('#loading-screen').show();
-    $('#vis-title-box').animate({top:((replay)?"30%":"46%"), left:"50%"});
+    $('#vis-title-box').animate({top:((replay)?"30%":"45%"), left:"50%"});
     
     // initiate
     $('#loading-screen').css({"background-image":"none"});
@@ -58,7 +58,7 @@ World.SVG.prototype.nextIntroStep = function() {
                             {top:"100%", left:"0px", "margin-left":"0px", "margin-top":-$(pid).height()-pad.v+"px", opacity:".3"},
                             {left:"50%", top:"100%", "margin-left":"-220px", "margin-top":-$(pid).height()-pad.v+"px", opacity:".3"},
                             {left:"50%", top:"0px", "margin-left":"-220px", opacity:".3"},
-                            {left:"100%", top:"0px", "margin-left":"0px", "margin-left":-$(pid).width()-pad.h+"px", opacity:".3"}
+                            {left:"100%", top:"0px", "margin-top":"0px", "margin-left":-$(pid).width()-pad.h+"px", opacity:".3"}
                         ];
         $(this_.introSteps.target[this_.introStep-1]).animate(targetLoc[this_.introStep-1]);
     }
@@ -92,7 +92,7 @@ World.SVG.prototype.loadIntro = function() {
         "View any range of casualties, from 10 to 6,000,000.",
         "View any timespan between January 1900 and December 2008. Click play to watch animations of disasters over time.",
         "Select a category of underlying data to be seen in each country on a color value scale.<br /> <br /><span class=\"subdue\">* [ blank ] displays no underlying data</span>",
-        "Those are the controls, now go on and explore the last century of disasters!"
+        "And finally, zoom by clicking on individual countries."
     ];
     this.introSteps.target = [
         "",
@@ -415,7 +415,11 @@ World.SVG.prototype.renderFilter = function () {
         .append("div")
         .attr("id", "map-filter-box")
         .attr("class", "map-box");
-        $('#map-filter-box').draggable({distance: 10});
+        $('#map-filter-box').draggable({
+            distance: 50, 
+            containment: "parent", 
+            axis: "x"
+        });
         
     d3.select("#map-filter-box")
         .append("div")
@@ -439,6 +443,11 @@ World.SVG.prototype.renderFilter = function () {
             .attr("id", "type-"+d.replace(/ /g, "-"))
             .html(d+'<span class="filter-color clear-back '+(($.inArray(d,this_.filters) >= 0)?"":"hidden")+' '+d.replace(/ /g, "-").toLowerCase()+'-loc">&nbsp;</span>');
     });
+    
+    d3.selectAll(".map-filter")
+        .append("span")
+        .attr("class", "filter-tot-count")
+        .attr("id", function(d,i) { return "tot-"+this_.filterSet[i].replace(/ /g, "-"); });
 
     $(document).delegate(".map-filter", "click", function() {
         if ($(this).hasClass('map-filter-checked')) {
@@ -576,6 +585,32 @@ World.SVG.prototype.getDisasterLoc = function(d) {
             $('#disaster-subLoc').html("");
         }
     }, "json");
+}
+
+//---------------------------------------------------------------------------------- Render / Update Totat Casualty Counters ---------------------------------
+
+World.SVG.prototype.renderTotCasCounts = function() {
+    d3.select("body")
+        .append("div")
+        .attr("id", "tot-cas-fade");
+}
+
+World.SVG.prototype.updateTotCasCounts = function() {
+    var this_ = this;
+    $.each(this_.subCatTotSet, function(k,v) {
+        if (v > 0) {
+            $('#tot-'+k.replace(/ /g, "-")).html(addCommas(v));
+        } else {
+            $('#tot-'+k.replace(/ /g, "-")).html("");
+        }
+    });
+}
+
+World.SVG.prototype.clearCatSubTot = function() {
+    var this_ = this;
+    $.each(this_.subCatTotSet, function(k,v) {
+        this_.subCatTotSet[k] = 0;
+    });
 }
 
 //---------------------------------------------------------------------------------- Help Windows ---------------------------------
