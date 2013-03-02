@@ -34,19 +34,22 @@ body {
                 margin:10px 0 0 5px;
                 padding:5px 10px 5px 10px;
                 width:246px;
+                background:rgba(255,255,255,.8);
                 display:none;
             }
             .vis-intro-next {
                 position:absolute;
-                top:190px;
+                top:234px;
                 right:0px;
+                padding:4px 0 4px 10px;
                 display:none;
                 font-weight:bold;
                 font-size:18px;
             }
             .vis-intro-skip {
                 position:absolute;
-                top:190px;
+                top:234px;
+                padding:4px 0 4px 0;
                 left:0px;
                 display:none;
                 opacity:.5;
@@ -97,7 +100,7 @@ body {
             cursor:pointer;
         }
         .country:hover {
-            fill:rgb(211,255,190) !important;
+            fill:rgb(160,160,160) !important;
         }
             .selected-country {
                 stroke:rgba(0,0,0,.8) !important;
@@ -107,7 +110,7 @@ body {
                 fill:rgb(177,177,177) !important;
             }
             .country-focus {
-                fill:rgb(211,255,190) !important;
+                fill:rgb(100,100,100) !important;
             }
         .country-label {
           fill:#000;
@@ -288,13 +291,14 @@ body {
             width:auto;
             height:auto;
             padding:6px;
+            padding-right:0px;
             display:none;
         }
             .map-scale-units {
                 position:absolute;
                 width:180px;
                 height:30px;
-                right:42px;
+                right:36px;
                 top:28px;
                 color:#999;
                 font-size:12px;
@@ -325,7 +329,7 @@ body {
                 font-size:14px;
                 padding-right:33px;
                 text-align:right;
-                right:6px;
+                right:0px;
             }
                 .map-scale-low {
                     bottom:6px;
@@ -339,7 +343,7 @@ body {
                 position:absolute;
                 width:auto;
                 text-align:right;
-                right:40px;
+                right:34px;
                 top:51px;
                 font-size:13px;
             }
@@ -366,13 +370,13 @@ body {
                 }
             #map-scale-info {
                 top:100%;
-                right:6px;
+                right:3px;
                 margin-top:12px;
             }
             .map-info-pop {
                 width:112px;
                 height:auto;
-                padding:7px 14px 7px 14px;
+                padding:7px 4px 7px 8px;
                 color:#666;
                 font-size:14px;
                 position:absolute;
@@ -385,7 +389,7 @@ body {
 
         #map-filter-box {
             width:164px;
-            height:270px;
+            height:250px;
             padding:10px 10px 0px 15px;
             display:none;
         }
@@ -395,7 +399,7 @@ body {
             }
             #map-filters {
                 margin-left:0px;
-                padding-bottom:15px;
+                padding-bottom:4px;
             }
                 #filter-all {
                     font-size:12px;
@@ -630,7 +634,7 @@ sup {
     border-right-color:transparent;
     border-top:0px;
     top:-11px;
-    right:6px;
+    right:-1px;
 }  
     .uarr-fill {
         width:0px;

@@ -33,7 +33,8 @@ d3.select("body")
     
     queue()
         .defer(d3.json, "data/world.json")
+        .defer(d3.csv, "data/gdptemporal.csv")
         .defer(d3.csv, "data/country_data.csv")
-        .defer(d3.csv, "data/disasters2.csv")
+        .defer(d3.csv, "data/disasters.csv")
         .await(init);
 });

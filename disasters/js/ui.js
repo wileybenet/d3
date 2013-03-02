@@ -14,6 +14,7 @@
 //      Disaster Filter
 //      Country Data Window
 //      Get Disaster Locaion (retieve.php)
+//      Render / Update Totat Casualty Counters
 //      Help Windows
 //      Zoom in to Country Window
 //      Zoom out of Country Window
@@ -83,15 +84,15 @@ World.SVG.prototype.finishIntro = function() {
 }
 
 World.SVG.prototype.loadIntro = function() {
-    
     var this_ = this;
+    
     this.introSteps = {};
     this.introSteps.text = [
         "Welcome to the global disaster interactive visualization. The following is a brief introduction to the interface.",
         "Select disasters types in the filter box. <br /> <br /><span class=\"subdue\">* Processing and animation will be slower when many disaster types are selected.</span>",
         "View any range of casualties, from 10 to 6,000,000.",
         "View any timespan between January 1900 and December 2008. Click play to watch animations of disasters over time.",
-        "Select a category of underlying data to be seen in each country on a color value scale.<br /> <br /><span class=\"subdue\">* [ blank ] displays no underlying data</span>",
+        "The GDP/capita values displayed are from the year that is selected by the handle on the right side of the time slider. The range of the scale updates to reflect the highest earning countries at that time.",
         "And finally, zoom by clicking on individual countries."
     ];
     this.introSteps.target = [
@@ -156,6 +157,7 @@ World.SVG.prototype.renderScale = function() {
             .attr("id", k+"ID")
             .attr("class", "map-scale-choice")
             .html(v.tooltip.replace(/: /g, ""));
+            return false;
     });
     $('#'+this_.cData+"ID").addClass('map-scale-choice-selected');
         
@@ -199,7 +201,7 @@ World.SVG.prototype.renderScale = function() {
     
     $(document).delegate("#map-scale-box", "mouseenter mouseleave", function(e) {
         if (e.type === "mouseenter") {
-            $(this).find(".map-info-pop").stop(true).fadeIn();
+            $(this).find(".map-info-pop").stop(true,true).fadeIn();
         } else {
             $(this).find(".map-info-pop").stop(true).fadeOut();
         }
@@ -223,14 +225,14 @@ World.SVG.prototype.updateScale = function() {
     d3.select("#map-scale-box")
         .append("div")
         .attr("class", "map-scale-value map-scale-high")
-        .html(addCommas(this_.cDataMeta[this_.cData].binHigh));
+        .html(addCommas(this_.cDataMeta[this_.cData].binHigh[this_.closeDate[2]]));
     d3.select("#map-scale-box")
         .append("div")
         .attr("class", "map-scale-value map-scale-low")
         .html(addCommas(this_.cDataMeta[this_.cData].binLow));
     
     for (var i=this_.binRange-1; i>=0;i--) {
-        var step = (this_.cDataMeta[this_.cData].binHigh-this_.cDataMeta[this_.cData].binLow)/this_.binRange;
+        var step = (this_.cDataMeta[this_.cData].binHigh[this_.closeDate[2]]-this_.cDataMeta[this_.cData].binLow)/this_.binRange;
         d3.select("#map-scale-box")
             .append("div")
             .attr("class", function(d) { return "map-scale-bin "+((this_.cData!="blank")?("q"+i):"");})
@@ -304,6 +306,11 @@ World.SVG.prototype.renderTimeSlider = function() {
                 this_.openDate = getDate(ui.values[0]);
                 this_.closeDate = getDate(ui.values[1]);
                 this_.updateDisasters();
+                this_.updateQuants();
+                this_.updateScale();
+                this_.updateCountries();
+                if (this_.curCountry)
+                    this_.showCountryWindow(this_.curCountry);
             }
         
         $("#map-time").slider(ob);
@@ -556,8 +563,10 @@ World.SVG.prototype.showCountryWindow = function(c) {
     var content = "";
     $.each(this_.cDataMeta, function(k,v) {
         if (k != "blank")
-            content += '<tr><td>'+v.tooltip.replace(/: /g, "")+'</td><td>'+v.pre+'<b>'+c[k]+'</b>'+v.suf+'</td></tr>';
+            content += '<tr><td>'+v.tooltip.replace(/: /g, "")+'</td><td>'+v.pre+'<b>'+addCommas(this_.dataByCC[this_.cData][c.id][this_.closeDate[2]])+'</b>'+v.suf+'</td></tr>';
+        return false;
     });
+    content += '<tr><td>'+this_.cDataMeta.totCas.tooltip.replace(/: /g, "")+'</td><td>'+this_.cDataMeta.totCas.pre+'<b>'+c["totCas"]+'</b>'+this_.cDataMeta.totCas.suf+'</td></tr>';
     
     $('.country-data-content-table').html(content);
 }
@@ -632,13 +641,13 @@ World.SVG.prototype.showHelp = function() {
 World.SVG.prototype.zoomIn = function(d, self) {
     var this_ = this;
     
-    //$('.country-label').css("fill", "#999");
-    //$('.country-label').css("font-size", "9px").hide();
+    $('.country-label').css("fill", "#666");
+    $('.country-label').css("font-size", "9px").hide();
     
     this.showCountryWindow(d);
     d3.selectAll('.country')
         .classed("country-focus", false);
-    d3.select(self).classed("country-focus", true);
+    //d3.select(self).classed("country-focus", true);
 
     var cent = this_.path.centroid(d);
     var box = self.getBBox();
@@ -650,7 +659,7 @@ World.SVG.prototype.zoomIn = function(d, self) {
         .attr("transform", "scale(" + this_.zoomSF + ")" +" translate(" + (zoomX+this_.x/this_.zoomSF) + "," + (zoomY+this_.y/this_.zoomSF) + ")");
 
     d.selected = true;
-    //$('#'+d.name.replace(/ /g, "_").replace(/\'/g, "-apos-").replace(/\&/g, "-amp-")+'-label').css("font-size", 30/this_.zoomSF+"px").show();
+    $('#'+d.name.replace(/ /g, "_").replace(/\'/g, "-apos-").replace(/\&/g, "-amp-")+'-label').css("font-size", 20/this_.zoomSF+"px").show();
 
     this_.cFilter = d.name;
     this_.updateDisasters();
@@ -660,13 +669,12 @@ World.SVG.prototype.zoomIn = function(d, self) {
 
 World.SVG.prototype.zoomOut = function() {
     var this_ = this;
-    d3.selectAll('.country')
-        .classed("country-focus", false);
+    //d3.selectAll('.country').classed("country-focus", false);
     this.hideCountryWindow();
     this.g.transition().duration(800)
         .attr("transform", "scale(1) translate("+this_.x+","+this_.y+")");
-    //$('.country-label').hide();
-    //$('.country-label').css("fill", "#000");
+    $('.country-label').hide();
+    $('.country-label').css("fill", "#000");
     this_.cFilter = null;
     this_.zoomSF = 1;
     this_.updateDisasters(null, true);

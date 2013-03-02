@@ -8,13 +8,13 @@
 
 var WorldSVG;
 
-function init(error, world, cdata, disasters) {
-    WorldSVG = new World.SVG(error, world, cdata, disasters);
+function init(error, world, gdp, cdata, disasters) {
+    WorldSVG = new World.SVG(error, world, gdp, cdata, disasters);
 }
 
 World = {};
 
-World.SVG = function(error, world, cdata, disasters) {
+World.SVG = function(error, world, gdp, cdata, disasters) {
     var this_ = this;
     
     this.absMinCas = 10;  // for casualty slider
@@ -40,6 +40,7 @@ World.SVG = function(error, world, cdata, disasters) {
     };
     
     this.world = world;
+    this.gdpRaw = gdp;
     this.countries = topojson.object(this_.world, this_.world.objects.countries).geometries;
     this.disasters = disasters;
     this.countryData = cdata;
@@ -58,22 +59,22 @@ World.SVG = function(error, world, cdata, disasters) {
             binLow: 0,
             binHigh: 100000
         },
-        popDensity: {
-            pre: "",
-            suf: " ppl / sq mi",
-            units: "(per sq mi)",
-            tooltip: "Population Density: ",
-            binLow: 0,
-            binHigh: 600
-        },
-        life: {
-            pre: "",
-            suf: " yrs",
-            units: "at Birth (years)",
-            tooltip: "Life Expectancy: ",
-            binLow: 40,
-            binHigh: 84
-        },
+//        popDensity: {
+//            pre: "",
+//            suf: " ppl / sq mi",
+//            units: "(per sq mi)",
+//            tooltip: "Population Density: ",
+//            binLow: 0,
+//            binHigh: 600
+//        },
+//        life: {
+//            pre: "",
+//            suf: " yrs",
+//            units: "at Birth (years)",
+//            tooltip: "Life Expectancy: ",
+//            binLow: 40,
+//            binHigh: 84
+//        },
         totCas: {
             pre: "",
             suf: "",
@@ -81,15 +82,15 @@ World.SVG = function(error, world, cdata, disasters) {
             tooltip: "Total Casualties: ",
             binLow: 0,
             binHigh: 1000000
-        },
-        blank: {
-            pre: "",
-            suf: "",
-            title: '',
-            tooltip: "[ blank ]",
-            binLow: 0,
-            binHigh: 0
-        }
+        }//,
+//        blank: {
+//            pre: "",
+//            suf: "",
+//            title: '',
+//            tooltip: "[ blank ]",
+//            binLow: 0,
+//            binHigh: 0
+//        }
     }
     
     this.binColor = ['rgb(227,246,255)', 'rgb(206,238,255)', 'rgb(184,231,254)', 'rgb(163,224,254)', 'rgb(142,217,254)', 'rgb(121,209,254)', 'rgb(99,202,253)', 'rgb(78,195,253)', 'rgb(57,188,253)', 'rgb(36,181,253)'];
@@ -124,30 +125,27 @@ World.SVG = function(error, world, cdata, disasters) {
             }
     };
     
+    
+    // get max bin values
+    this.gdpByCC = {};
+    this.gdpRaw.forEach(function(d) {
+        var id = d.id;
+        this_.gdpByCC[id] = {};
+        delete d.id;
+        var cur = 0;
+        $.each(d, function(k,v) {
+            this_.gdpByCC[id][k] = (parseInt(v)>0)?parseInt(v):cur;
+            cur = this_.gdpByCC[id][k];
+        });
+    });
+    this.cDataMeta.gdp.binHigh = this.gdpByCC.max;
+    $.each(this_.cDataMeta.gdp.binHigh, function(k,v) {
+        this_.cDataMeta.gdp.binHigh[k] = roundTo(parseInt(v)*0.75);
+    });
+        
     this.binRange = 10;
 
-    var quantGDP = d3.scale.quantize()
-        .domain([this_.cDataMeta.gdp.binLow, this_.cDataMeta.gdp.binHigh])
-        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
-    var quantPopDensity = d3.scale.quantize()
-        .domain([this_.cDataMeta.popDensity.binLow, this_.cDataMeta.popDensity.binHigh])
-        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
-    var quantLife = d3.scale.quantize()
-        .domain([this_.cDataMeta.life.binLow, this_.cDataMeta.life.binHigh])
-        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
-    var quantTotCas = d3.scale.quantize()
-        .domain([this_.cDataMeta.totCas.binLow, this_.cDataMeta.totCas.binHigh])
-        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
-    var quantBlank = d3.scale.quantize()
-        .range(d3.range(this_.binRange).map(function() {return "q-blank";}));
-    this.quantize = {
-        "gdp": quantGDP,
-        "popDensity": quantPopDensity,
-        "life": quantLife,
-        "totCas": quantTotCas,
-        "blank": quantBlank
-    };
-    
+    this.updateQuants();
     
     this.initData();
     
@@ -173,9 +171,37 @@ World.SVG = function(error, world, cdata, disasters) {
     this.playIntro();
 }
 
-World.SVG.prototype.initData = function() {
+World.SVG.prototype.updateQuants = function() {
     var this_ = this;
     
+    var quantGDP = d3.scale.quantize()
+        .domain([this_.cDataMeta.gdp.binLow, this_.cDataMeta.gdp.binHigh[this_.closeDate[2]]])
+        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
+//    var quantPopDensity = d3.scale.quantize()
+//        .domain([this_.cDataMeta.popDensity.binLow, this_.cDataMeta.popDensity.binHigh])
+//        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
+//    var quantLife = d3.scale.quantize()
+//        .domain([this_.cDataMeta.life.binLow, this_.cDataMeta.life.binHigh])
+//        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
+//    var quantTotCas = d3.scale.quantize()
+//        .domain([this_.cDataMeta.totCas.binLow, this_.cDataMeta.totCas.binHigh])
+//        .range(d3.range(this_.binRange).map(function(i) {return "q" + i;}));
+//    var quantBlank = d3.scale.quantize()
+//        .range(d3.range(this_.binRange).map(function() {return "q-blank";}));
+    this.quantize = {
+        "gdp": quantGDP//,
+//        "popDensity": quantPopDensity,
+//        "life": quantLife,
+//        "totCas": quantTotCas,
+//        "blank": quantBlank
+    };
+    
+    this.getQuant = function(d) { return this_.quantize[this_.cData](this_.dataByCC[this_.cData][d.id][this_.closeDate[2]]) };
+}
+
+World.SVG.prototype.initData = function() {
+    var this_ = this;
+        
     var nullC = 0;
     this.countries.forEach(function(d) {
         if (d.id == -99 || d.id == -100) {
@@ -202,20 +228,18 @@ World.SVG.prototype.initData = function() {
     });
         
     // init country data types
-    var gdpByCC = {};
     var popDensityByCC = {};
     var lifeByCC = {};
     var totCasByCC = {};
     var blankByCC = {};
     this.countryData.forEach(function(d) {
-        gdpByCC[d.num] = d.gdp;
         popDensityByCC[d.num] = d.popDensity;
         lifeByCC[d.num] = d.life;
         totCasByCC[d.num] = this_.totCas[d.num];
         blankByCC[d.num] = 0;
     });
     this.dataByCC = {
-        'gdp': gdpByCC,
+        'gdp': this_.gdpByCC,
         'popDensity': popDensityByCC,
         'life': lifeByCC,
         'totCas': totCasByCC,
@@ -235,11 +259,11 @@ World.SVG.prototype.initData = function() {
             d.life = addCommas(parseInt(temp[0].life));
             d.totCas = addCommas(parseInt(this_.totCas[temp[0].num]));
             d.bin = {
-                'gdp':  this_.quantize['gdp'](this_.dataByCC['gdp'][d.id]),
-                'popDensity': this_.quantize['popDensity'](this_.dataByCC['popDensity'][d.id]),
-                'life': this_.quantize['life'](this_.dataByCC['life'][d.id]),
-                'totCas': this_.quantize['totCas'](this_.dataByCC['totCas'][d.id]),
-                'blank': "q-blank"
+                'gdp':  this_.quantize['gdp'](this_.dataByCC['gdp'][d.id])//,
+//                'popDensity': this_.quantize['popDensity'](this_.dataByCC['popDensity'][d.id]),
+//                'life': this_.quantize['life'](this_.dataByCC['life'][d.id]),
+//                'totCas': this_.quantize['totCas'](this_.dataByCC['totCas'][d.id]),
+//                'blank': "q-blank"
             };
         } else {
             d.name = d.gdp = d.popDensity = "";
@@ -327,27 +351,27 @@ World.SVG.prototype.drawCountries = function() {
       .enter().insert("path", ".graticule")
         .attr("d", this_.path)//.transition().duration(1500)
         .style("fill", function(d) {
-            var s = d.bin[this_.cData];
-            if (s) {
-                s = parseInt(s.substr(1,s.length));
-                return this_.binColor[s];
+            if (this_.dataByCC[this_.cData][d.id]) {
+                var s = this_.getQuant(d);
+                s = s.substr(1,s.length);
+                return (s == "-blank")?"rgb(255,255,255)":this_.binColor[parseInt(s)];
             } else {
                 return this_.binColor[0];
             }
         })
-        .attr("class", function(d) {return this_.quantize[this_.cData](this_.dataByCC[this_.cData][d.id])+" country";})
+        .attr("class", function(d) {return ((this_.dataByCC[this_.cData][d.id])?this_.getQuant(d):"q0")+" country";})
         .attr("id", function(d) {return "country_code_"+d.id});
         this_.g.select('#country_code_10').attr("class", "");
         
     this.g.selectAll("path")
         .on('click', function(d) {
+            this_.curCountry = d;
             this_.zoomIn(d, this);
         });
         
-    
     this.g.selectAll('.country-label').data(this_.countries, function(d) {return d.uid})
       .enter().append("text")
-        .attr("class", function(d) {return "country-label "+d.bin[this_.cData]+"-label";})
+        .attr("class", function(d) {return "country-label "+((this_.dataByCC[this_.cData][d.id])?this_.quantize[this_.cData](this_.dataByCC[this_.cData][d.id][this_.closeDate[2]]):"q0")+"-label";})
         .attr("id", function(d) {return d.name.replace(/ /g, "_").replace(/\'/g, "-apos-").replace(/\&/g, "-amp-")+'-label'})
         .attr("transform", function(d) {return "translate("+this_.getCentroid(d, this_.path.centroid(d))+")";})
         .attr("dy", ".35em")
@@ -378,7 +402,7 @@ World.SVG.prototype.drawCountries = function() {
             this_.localCData
               .classed("hidden", false)
               .attr("style", "left:"+Math.min(mouse[0], $('#map').width()-220)+"px;top:"+Math.min(mouse[1], $('#map').height()-80)+"px")
-              .html("<b>"+d.name+"</b><br />"+this_.cDataMeta[this_.cData].tooltip+this_.cDataMeta[this_.cData].pre+d[this_.cData]+this_.cDataMeta[this_.cData].suf);
+              .html("<b>"+d.name+"</b><br />"+this_.cDataMeta[this_.cData].tooltip+this_.cDataMeta[this_.cData].pre+addCommas(this_.dataByCC[this_.cData][d.id][this_.closeDate[2]])+this_.cDataMeta[this_.cData].suf);
         })
         .on("mouseout",  function(d,i) {            
             this_.localCData.classed("hidden", true);
@@ -387,21 +411,36 @@ World.SVG.prototype.drawCountries = function() {
 
 World.SVG.prototype.updateCountries = function() {
     var this_ = this;
-    this.g.selectAll(".country").transition().duration(600).ease("quad")
-        .style("fill", function(d,i) {
-            var s = d.bin[this_.cData];
-            if (s) {
-                s = s.substr(1,s.length);
-                return (s == "-blank")?"rgb(255,255,255)":this_.binColor[parseInt(s)];
-            } else {
-                return this_.binColor[0];
-            }
-        })
-        .attr("class", function(d,i) {return this_.quantize[this_.cData](this_.dataByCC[this_.cData][d.id])+" country";});
+    this.g.selectAll(".country")//.transition().duration(600).ease("quad")
+//        .style("fill", function(d) {
+//            if (this_.dataByCC[this_.cData][d.id]) {
+//                var s = this_.quantize[this_.cData](this_.dataByCC[this_.cData][d.id][this_.closeDate[2]]);
+//                s = s.substr(1,s.length);
+//                return (s == "-blank")?"rgb(255,255,255)":this_.binColor[parseInt(s)];
+//            } else {
+//                return this_.binColor[0];
+//            }
+//        })
+        .attr("class", function(d) {return ((this_.dataByCC[this_.cData][d.id])?this_.getQuant(d):"q0")+" country";})
         this_.g.select('#country_code_10').attr("class", "");
 
     this.g.selectAll('.country-label')
-        .attr("class", function(d) {return "country-label "+d.bin[this_.cData]+"-label";});
+        .attr("class", function(d) {return "country-label "+((this_.dataByCC[this_.cData][d.id])?this_.getQuant(d):"q0")+"-label";});
+        
+    this.g.selectAll(".country").data(this_.countries, function(d) {return d.uid})
+        .on("mousemove", function(d,i) {
+            var off = $('#map').offset();
+                        
+            var mouse = d3.mouse(this_.svg.node()).map( function(d) {return parseInt(d);} );
+            
+            this_.localCData
+              .classed("hidden", false)
+              .attr("style", "left:"+Math.min(mouse[0], $('#map').width()-220)+"px;top:"+Math.min(mouse[1], $('#map').height()-80)+"px")
+              .html("<b>"+d.name+"</b><br />"+this_.cDataMeta[this_.cData].tooltip+this_.cDataMeta[this_.cData].pre+addCommas(this_.dataByCC[this_.cData][d.id][this_.closeDate[2]])+this_.cDataMeta[this_.cData].suf);
+        })
+        .on("mouseout",  function(d,i) {            
+            this_.localCData.classed("hidden", true);
+        });
 }
 
 World.SVG.prototype.updateDisasters = function(boot, zoomOut) {
@@ -547,6 +586,9 @@ World.SVG.prototype.getCScaleFactor = function(d, box) {
         case "China":
             sf = 3.5;
             break;
+        case "Norway":
+            sf = 7;
+            break;
         default:
             sf = Math.min((this_.width / box.width / 4), 8);
     }
@@ -578,6 +620,7 @@ World.SVG.prototype.setWindowHandlers = function() {
     var this_ = this;
     $(document).keyup(function(e) {
         if (e.keyCode == 27) {
+            this_.curCountry = null;
             this_.zoomOut();
         }
     });
