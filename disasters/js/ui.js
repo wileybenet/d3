@@ -689,17 +689,49 @@ World.SVG.prototype.renderSignature = function() {
     d3.select("body")
         .append("div")
         .attr("id", "signature")
+        .classed("out", true);
+    d3.select("#signature")
+        .append("span")
+        .attr("id", "sources-link")
+        .attr("class", "action")
+        .html("Sources ");
+    d3.select("#signature")
+        .append("span")
         .html("&copy; ");
-    
     d3.select("#signature")
         .append("span")
         .attr("id", "portfolio-link")
         .attr("class", "action")
         .html("Wiley Bennett");
+    d3.select("#signature")
+        .append("div")
+        .attr("id", "sources-pop")
+        .attr("class", "map-info-pop")
+        .classed("hidden", true)
+        .classed("out", true)
+        .html('Disaster Data: <a href="http://www.emdat.be" target="_blank">EM-DAT</a><br />'+
+              'GDP data: <a href="http://www.gapminder.org/world/" target="_blank">Gapminder</a>');
+        $('#sources-pop').prepend('<div class="darr"><div class="darr-fill"></div></div>');
     
     $(document).delegate("#portfolio-link", "click", function() {
         window.open("http://w.bmdware.com/portfolio/");
         window.focus();
+    });
+    
+    $(document).delegate("#sources-link", "click", function() {
+        d3.select("#sources-pop").classed("hidden", false);
+    });
+    $(document).delegate("#sources-pop, #signature", "mouseenter mouseleave", function(e) {
+        if (e.type === "mouseenter") {
+            d3.select("#"+$(this).attr("id")).classed("out", false);
+        } else {
+            d3.select("#"+$(this).attr("id")).classed("out", true);
+        }
+    });
+    $(document).delegate("body", "click", function() {
+        if ($('#sources-pop').hasClass("out") && $('#signature').hasClass("out")) {
+            d3.select("#sources-pop").classed("hidden", true);
+        }
     });
     
 }

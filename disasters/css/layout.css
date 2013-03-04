@@ -64,7 +64,7 @@ body {
                 top:5%;
                 left:50%;
                 margin-left:65px;
-                z-index:10000;
+                z-index:9000;
                 display:none;
             }
             #intro-replay {
@@ -382,7 +382,7 @@ body {
                 position:absolute;
                 background:rgba(255,255,255,.8);
                 box-shadow: 0 1px 5px rgba(0,0,0,.4);
-                z-index:1000;
+                z-index:10000;
                 display:none;
             }
                 
@@ -539,8 +539,19 @@ body {
         bottom:2px;
         right:7px;
         text-align:right;
-        z-index:900;
+        z-index:9000;
     }
+        #sources-pop {
+            width:135px;
+            height:auto;
+            bottom:26px;
+            right:5px;
+            font-size:13px;
+            text-align:left;
+            padding-right:12px;
+            position:absolute;
+            display:block;
+        }
     
     
 
@@ -555,11 +566,12 @@ sup {
 .hidden { 
     display:none !important; 
 }
-.action {
+.action, a {
+    text-decoration:none;
     color:rgb(20, 46, 240);
     cursor:pointer;
 }
-.action:hover {
+.action:hover, a:hover {
     color:rgb(0, 153, 255);
 }
 .button {
@@ -645,5 +657,27 @@ sup {
         border-right-color:transparent;
         border-top:0px;
         bottom:-10px;
+        right:-9px;
+    }  
+.darr {
+    width:1px;
+    height:2px;
+    position:absolute;
+    border:9px solid rgba(0,0,0,.2);
+    border-left-color:transparent;
+    border-right-color:transparent;
+    border-bottom:0px;
+    bottom:-12px;
+    right:105px;
+}  
+    .darr-fill {
+        width:0px;
+        height:2px;
+        position:absolute;
+        border:9px solid #FFF;
+        border-left-color:transparent;
+        border-right-color:transparent;
+        border-bottom:0px;
+        bottom:2px;
         right:-9px;
     }  
