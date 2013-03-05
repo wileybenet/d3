@@ -1,6 +1,6 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.0.5
+// v 1.1.0
 //
 // UI render calls and general interaction
 // 

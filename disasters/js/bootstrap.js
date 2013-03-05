@@ -1,6 +1,6 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.0.5
+// v 1.1.0
 // 
 // Bootstrap script
 // Defines the namespace and prototype functions for rendering and updating data
@@ -247,6 +247,7 @@ World.SVG.prototype.initData = function() {
     };
     
     var i = 0;
+    var aus = 0;
     this.countries.forEach(function(d) {
         d.uid = i++;
         d.selected = false;
@@ -254,6 +255,7 @@ World.SVG.prototype.initData = function() {
         var temp = this_.countryData.filter(function(n) {return d.id == n.num;});
         if (temp.length == 1) {
             d.name = temp[0].name.toTitleCase();
+            if (d.id == 36) { aus++; if (aus > 1) d.name = "" }
             d.gdp = addCommas(parseInt(temp[0].gdp));
             d.popDensity = addCommas(parseInt(temp[0].popDensity));
             d.life = addCommas(parseInt(temp[0].life));
