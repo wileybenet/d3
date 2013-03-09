@@ -73,3 +73,7 @@ function getPadding(id) {
             h:parseInt($(id).css("padding-left"))+parseInt($(id).css("padding-right"))
         };
 }
+
+function getAnimSpeed(speed) {
+    return (100/Math.pow(speed, 2.86)+2)*8;
+}

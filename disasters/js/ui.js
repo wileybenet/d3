@@ -36,10 +36,11 @@ World.SVG.prototype.playIntro = function(replay) {
     // initiate
     $('#loading-screen').css({"background-image":"none"});
     $('#vis-title-box').animate({top:"30%"}, function() {
-        $('.vis-intro-disable-screen').show();
+        //$('.vis-intro-disable-screen').show();
         $('.vis-intro-content').html(this_.introSteps.text[0]).fadeIn();
+        $('.vis-intro-step-count').html(this_.introStep+1+" / "+(this_.introSteps.text.length));
         $('.vis-intro-next').html("Next &raquo;");
-        $('.vis-intro-next, .vis-intro-skip').fadeIn();
+        $('.vis-intro-next, .vis-intro-skip, .vis-intro-step-count').fadeIn();
     });
 }
 
@@ -49,6 +50,7 @@ World.SVG.prototype.nextIntroStep = function() {
         $('.vis-intro-next').html("Start &raquo;");
     }
     $('.vis-intro-content').hide().html(this_.introSteps.text[this_.introStep]).fadeIn();
+    $('.vis-intro-step-count').html(this_.introStep+1+" / "+(this_.introSteps.text.length));
     var id = this_.introSteps.target[this_.introStep];
     $(id).css({left:"50%", top:"30%", "margin-left":85+this_.introSteps.correction[this_.introStep]+"px", "margin-top":"0px"}).delay(200).fadeIn();
     if (this_.introStep > 1) {
@@ -90,8 +92,8 @@ World.SVG.prototype.loadIntro = function() {
     this.introSteps.text = [
         "Welcome to the global disaster interactive visualization. The following is a brief introduction to the interface.",
         "Select disasters types in the filter box. <br /> <br /><span class=\"subdue\">* Processing and animation will be slower when many disaster types are selected.</span>",
-        "View any range of casualties, from 10 to 6,000,000.",
-        "View any timespan between January 1900 and December 2008. Click play to watch animations of disasters over time.",
+        "View any range of casualties, from 10 to 6,000,000. Slide the handles or click on the values to manually set them.<br /> <br /><span class=\"subdue\">The circle size reflects the number of casualties.</span>",
+        "View any timespan between January 1900 and December 2008. Click play to watch animations of disasters over time.<br /> <br />Adjust the animation playback speed with the vertical slider.",
         "The GDP/capita values displayed are from the year that is selected by the handle on the right side of the time slider. The range of the scale updates to reflect the highest earning countries at that time.",
         "And finally, zoom by clicking on individual countries."
     ];
@@ -235,7 +237,7 @@ World.SVG.prototype.updateScale = function() {
         var step = (this_.cDataMeta[this_.cData].binHigh[this_.closeDate[2]]-this_.cDataMeta[this_.cData].binLow)/this_.binRange;
         d3.select("#map-scale-box")
             .append("div")
-            .attr("class", function(d) { return "map-scale-bin "+((this_.cData!="blank")?("q"+i):"");})
+            .attr("class", function(d) {return "map-scale-bin "+((this_.cData!="blank")?("q"+i):"");})
             .attr("title", (addCommas(parseInt(this_.cDataMeta[this_.cData].binLow)+Math.floor(i*step*10)/10))+" - "+(addCommas(parseInt(this_.cDataMeta[this_.cData].binLow)+Math.floor((i+1)*step*10)/10))+(((i+1)==this_.binRange)?"+":""));
     }
 
@@ -276,12 +278,32 @@ World.SVG.prototype.renderTimeSlider = function() {
     
     d3.select("#map-time-box")
         .append("div")
-        .attr("id", "map-time")
+        .attr("id", "map-time");
         
     d3.select("#map")
         .append("div")
         .attr("id", "map-time-watermark")
         .attr("style", "font-size:"+($(window).height()/6)+"px");
+        
+    var svg = d3.select("#map-time-box")
+        .append("svg")
+        .attr("id", "map-time-scale")
+        .attr("width", 440)
+        .attr("height", 23);
+    var scale = d3.scale.linear()
+        .domain([1910, 2000])
+        .range([0, 339]);
+    var xAxis = d3.svg.axis()
+        .scale(scale)
+        .orient("bottom")
+        .tickSize(3)
+        .tickFormat(d3.format("0000"));
+    svg.append("g")
+        .attr("transform", "translate(53,5)")
+        .call(xAxis);
+    
+    var initSpeed = 2.0;
+    this_.animSpeed = getAnimSpeed(initSpeed);
         
     var min = 1,
         max = 1308;
@@ -301,17 +323,21 @@ World.SVG.prototype.renderTimeSlider = function() {
                 changeSlide(event, ui);
             }
         };
-            function changeSlide(e, ui) {
-                $("#map-time-amount").html(getReadableMY(getDate(ui.values[0]))+"&nbsp; &mdash; &nbsp;"+getReadableMY(getDate(ui.values[1])));
-                this_.openDate = getDate(ui.values[0]);
-                this_.closeDate = getDate(ui.values[1]);
-                this_.updateDisasters();
-                this_.updateQuants();
-                this_.updateScale();
-                this_.updateCountries();
-                if (this_.curCountry)
-                    this_.showCountryWindow(this_.curCountry);
+        function changeSlide(e, ui) {
+            $("#map-time-amount").html(getReadableMY(getDate(ui.values[0]))+"&nbsp; &mdash; &nbsp;"+getReadableMY(getDate(ui.values[1])));
+            this_.openDate = getDate(ui.values[0]);
+            this_.closeDate = getDate(ui.values[1]);
+            this_.updateDisasters();
+            this_.updateQuants();
+            this_.updateScale();
+            this_.updateCountries();
+            if (this_.zoomSF > 1) {
+                $('.disaster-label').css({"font-size":14/this_.zoomSF+"px", "alignment-baseline":"middle"});
+                $('.disaster-label').css({"alignment-baseline":"baseline"});
             }
+            if (this_.curCountry)
+                this_.showCountryWindow(this_.curCountry);
+        }
         
         $("#map-time").slider(ob);
         $("#map-time-amount").html(getReadableMY(this_.openDate)+"&nbsp; &mdash; &nbsp;"+getReadableMY(this_.closeDate));
@@ -319,47 +345,111 @@ World.SVG.prototype.renderTimeSlider = function() {
     
     $(document).delegate('#map-time-play', 'click', function() {
         var tSpan = 5; // years
-        if (getNumFromDate(this_.closeDate)-getNumFromDate(this_.openDate) != tSpan*12 || this_.closeDate[2] == 2010) {
+        this_.continueAnimation = true;
+        if (this_.openDate[2] == 2010) {
             this_.openDate = [1,1,1900];
+            this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
+        } else {
             this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
         }
         var $this = $(this);
         if (!$(this).hasClass("play")) {
             $(this).html(this_.icon.pause).addClass("play");
             $('#map-time-watermark').show();
-            this_.play = setInterval(function() {
-                if (getNumFromDate(this_.closeDate) >= max) {
-                    this_.stopAnimation();
-                    $('#map-time').slider("values", [min, max]);
-                } else {
-                    $('#map-time-watermark').html(this_.closeDate[2]);
-                    var vals = [getNumFromDate(this_.openDate), getNumFromDate(this_.closeDate)];
-                    $('#map-time').slider("values", vals);
-                    d3.selectAll('.disaster-loc')
-                        .classed("loc-filter-hover", true);
-                    this_.openDate = getDate(2+getNumFromDate(this_.openDate));
-                    this_.closeDate = getDate(2+getNumFromDate(this_.closeDate));
-                }
-            }, 10);
+            this_.playAnimation(min, max);
         } else {
-            this_.stopAnimation();
+            this_.continueAnimation = false;
         }
     });
     
     $(document).delegate('#map-time-reset', 'click', function() {
-        this_.stopAnimation();
+        this_.continueAnimation = false;
         $('#map-time').slider("values", [getNumFromDate(this_.reset.time.openDate), getNumFromDate(this_.reset.time.closeDate)]);
     });
     
+    d3.selectAll(".ui-slider-handle")
+        .append("div")
+        .attr("class", "ui-slider-handle-big");
+        
+    this_.appendAnimSpeedSlider(initSpeed);
+        
+    $(document).delegate('#map-time-box', 'mouseenter mouseleave', function(e) {
+        if (e.type == "mouseenter") {
+            $('#map-time-speed-label').stop(true,true).fadeIn(150);
+        } else {
+            $('#map-time-speed-label').stop(true).fadeOut();
+        }
+    });
+}
+
+World.SVG.prototype.appendAnimSpeedSlider = function(initSpeed) {
+    var this_ = this;
+    
+    d3.select("#map-time-box")
+        .append("div")
+        .attr("id", "map-time-speed");
+        
+    $(function() {
+        var ob = {
+            orientation: "vertical",
+            min: 1,
+            max: 5,
+            step: .1,
+            animate: 150,
+            value: initSpeed,
+            slide: function(event, ui) {
+                this_.animSpeed = getAnimSpeed(ui.value);
+                $('#map-time-speed-val').html(ui.value*10);
+            }
+        };
+        $("#map-time-speed").slider(ob);
+    });
+    
+    d3.select("#map-time-speed .ui-slider-handle")
+        .append("div")
+        .attr("class", "ui-slider-handle-big-right")
+        .append("div")
+        .attr("id", "map-time-speed-label")
+        .text("Animation Speed");
+    d3.select("#map-time-speed .ui-slider-handle-big-right")
+        .append("div")
+        .attr("id", "map-time-speed-val")
+        .text(initSpeed*10);
+}
+
+World.SVG.prototype.playAnimation = function(min, max) {
+    var this_ = this;
+    setTimeout(function() {
+        if (getNumFromDate(this_.closeDate) >= max) {
+            this_.continueAnimation = false;
+            this_.stopAnimation();
+            $('#map-time').slider("values", [min, max]);
+            return false;
+        } else {
+            $('#map-time-watermark').html(this_.closeDate[2]);
+            var vals = [getNumFromDate(this_.openDate), getNumFromDate(this_.closeDate)];
+            $('#map-time').slider("values", vals);
+            d3.selectAll('.disaster-loc')
+                .classed("loc-filter-hover", true);
+            this_.openDate = getDate(6+getNumFromDate(this_.openDate));
+            this_.closeDate = getDate(6+getNumFromDate(this_.closeDate));
+        }
+        if (this_.continueAnimation) {
+            d3.selectAll(".disaster-label").classed("hidden", false);
+            this_.playAnimation(min, max);
+        } else {
+            this_.stopAnimation();
+        }
+    }, this_.animSpeed);
 }
 
 World.SVG.prototype.stopAnimation = function() {
     var this_ = this;
+    d3.selectAll(".disaster-label").classed("hidden", true);
     $('#map-time-play').html(this_.icon.play).removeClass("play");
-        d3.selectAll('.disaster-loc')
-            .classed("loc-filter-hover", false);
-        clearInterval(this_.play);
-        $('#map-time-watermark').html("").hide();
+    d3.selectAll('.disaster-loc')
+        .classed("loc-filter-hover", false);
+    $('#map-time-watermark').html("").hide();
 }
 
 //---------------------------------------------------------------------------------- Casualty Slider ---------------------------------
@@ -378,14 +468,31 @@ World.SVG.prototype.renderCasualtiesSlider = function() {
         .text("Casualties");
         
     d3.select("#map-casualties-box")
-        .append("span")
+        .append("div")
         .attr("id", "map-casualties-amount");
+    d3.select("#map-casualties-amount")
+        .append("input")
+        .attr("id", "map-casualties-min")
+        .attr("class", "map-casualties-input")
+        .attr("action", "0");
+    d3.select("#map-casualties-amount")
+        .append("span")
+        .html("&nbsp; &mdash; &nbsp;");
+    d3.select("#map-casualties-amount")
+        .append("input")
+        .attr("id", "map-casualties-max")
+        .attr("class", "map-casualties-input")
+        .attr("action", "1");
         
     d3.select("#map-casualties-box")
         .append("div")
-        .attr("id", "map-casualties")
+        .attr("id", "map-casualties");
     
     $(function() {
+        function renderCasVals(min, max) {
+            $("#map-casualties-min").val(min);
+            $("#map-casualties-max").val(max);
+        }
         var ob = {
             range: true,
             min: log10(this_.absMinCas),
@@ -393,24 +500,52 @@ World.SVG.prototype.renderCasualtiesSlider = function() {
             step: .00001,
             animate: 200,
             values: [log10(this_.minCas), log10(this_.maxCas)],
-            slide: function(event, ui) {
-                var factor;
-                var val = [Math.pow(10, ui.values[0]), Math.pow(10, ui.values[1])];
-                $("#map-casualties-amount").html(addCommas(roundTo(val[0]))+"&nbsp; &mdash; &nbsp;"+addCommas(roundTo(val[1])));
-                this_.minCas = roundTo(val[0]);
-                this_.maxCas = roundTo(val[1]);
-                this_.updateDisasters();
-            },
-            stop: function(event, ui) {
-//                var factor;
-//                var val = [Math.pow(10, ui.values[0]), Math.pow(10, ui.values[1])];
-//                $("#map-slider-amount").html(addCommas(roundTo(val[0]))+" - "+addCommas(roundTo(val[1])));
-//                this_.updateDisasters(roundTo(val[0]), roundTo(val[1]));
-            }
+            change: function(event, ui) {changeCasSlider(event, ui)},
+            slide: function(event, ui) {changeCasSlider(event, ui)}
         };
+        function changeCasSlider(event, ui) {
+            var val = [Math.pow(10, ui.values[0]), Math.pow(10, ui.values[1])];
+            renderCasVals(addCommas(roundTo(val[0])), addCommas(roundTo(val[1])));
+            this_.minCas = roundTo(val[0]);
+            this_.maxCas = roundTo(val[1]);
+            this_.updateDisasters();
+        }
         $("#map-casualties").slider(ob);
-        $("#map-casualties-amount").html(addCommas(this_.minCas)+"&nbsp; &mdash; &nbsp;"+addCommas(this_.maxCas));
-    });    
+        renderCasVals(addCommas(this_.minCas), addCommas(this_.maxCas));
+    });
+    $(document).delegate(".map-casualties-input", "blur", function(e) {
+        var min = log10(this_.minCas)+.001,
+            max = log10(this_.maxCas)+.001;
+        var i = parseInt($(this).attr("action"));
+        var val = log10(parseInt($(this).val().replace(/,/g, "")))+.001;
+        if (i == 0) {
+            if (val) {
+                if (val > max) {
+                    val = max-.01;
+                }
+            } else {
+                val = min;
+            }
+        } else {
+            if (val) {
+                if (val < min) {
+                    val = min+.01;
+                }
+            } else {
+                val = max;
+            }
+        }
+        $("#map-casualties").slider("values", i, val);
+    });
+    $(document).delegate(".map-casualties-input", "focus", function(e) {
+        var val = $(this).val().replace(/,/g, "");
+        $(this).val(val);
+    });
+    $(document).delegate(".map-casualties-input", "keydown", function(e) {
+        if (e.keyCode == 13) {
+            $(this).blur();
+        }
+    });
 }
 
 //---------------------------------------------------------------------------------- Disaster Filter ---------------------------------
@@ -454,7 +589,7 @@ World.SVG.prototype.renderFilter = function () {
     d3.selectAll(".map-filter")
         .append("span")
         .attr("class", "filter-tot-count")
-        .attr("id", function(d,i) { return "tot-"+this_.filterSet[i].replace(/ /g, "-"); });
+        .attr("id", function(d,i) {return "tot-"+this_.filterSet[i].replace(/ /g, "-");});
 
     $(document).delegate(".map-filter", "click", function() {
         if ($(this).hasClass('map-filter-checked')) {
@@ -585,13 +720,16 @@ World.SVG.prototype.getDisasterLoc = function(d) {
     var this_ = this;
     var lat = parseFloat(d.lat),
         lng = parseFloat(d.lng);
+    var pend = this.pendingLoc = Math.random();
     $.post('retrieve.php', {lat: lat, lng: lng}, function(json) {
-        if (json.status == "OK") {
-            var set = json.results.splice(json.results.length-2, 1).reverse();
-            this_.curLoc = set[0].formatted_address.split(", ")[0]+', ';
-            $('#disaster-subLoc').html(this_.curLoc);
-        } else {
-            $('#disaster-subLoc').html("");
+        if (pend == this_.pendingLoc) {
+            if (json.status == "OK") {
+                var set = json.results.splice(json.results.length-2, 1).reverse();
+                this_.curLoc = set[0].formatted_address.split(", ")[0]+', ';
+                $('#disaster-subLoc').html(this_.curLoc);
+            } else {
+                $('#disaster-subLoc').html("");
+            }
         }
     }, "json");
 }
@@ -659,7 +797,8 @@ World.SVG.prototype.zoomIn = function(d, self) {
         .attr("transform", "scale(" + this_.zoomSF + ")" +" translate(" + (zoomX+this_.x/this_.zoomSF) + "," + (zoomY+this_.y/this_.zoomSF) + ")");
 
     d.selected = true;
-    $('#'+d.name.replace(/ /g, "_").replace(/\'/g, "-apos-").replace(/\&/g, "-amp-")+'-label').css("font-size", 20/this_.zoomSF+"px").show();
+    $('#'+d.name.replace(/ /g, "_").replace(/\'/g, "-apos-").replace(/\&/g, "-amp-")+'-label').show();
+    $('.country-label').css("font-size", 20/this_.zoomSF+"px");
 
     this_.cFilter = d.name;
     this_.updateDisasters();
@@ -675,6 +814,7 @@ World.SVG.prototype.zoomOut = function() {
         .attr("transform", "scale(1) translate("+this_.x+","+this_.y+")");
     $('.country-label').hide();
     $('.country-label').css("fill", "#000");
+    $('.country-label').css({"font-size":"9px", "alignment-baseline":"baseline"});
     this_.cFilter = null;
     this_.zoomSF = 1;
     this_.updateDisasters(null, true);

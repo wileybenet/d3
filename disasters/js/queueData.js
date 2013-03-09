@@ -22,6 +22,9 @@ d3.select("body")
         .append("div")
         .attr("class", "vis-intro-skip action intro")
         .text("Skip");
+    d3.select("#vis-title-box")
+        .append("div")
+        .attr("class", "vis-intro-step-count intro");
     d3.select("body")
         .append("div")
         .attr("class", "vis-intro-disable-screen intro");
