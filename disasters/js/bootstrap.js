@@ -371,7 +371,7 @@ World.SVG.prototype.drawCountries = function() {
         .attr("id", "local-d-data");
 
     this.g.selectAll(".country").data(this_.countries, function(d) {return d.uid})
-        .on("mousemove", function(d,i) {
+        .on("mousemove", function(d) {
             var off = $('#map').offset();
                         
             var mouse = d3.mouse(this_.svg.node()).map( function(d) {return parseInt(d);} );
@@ -417,10 +417,10 @@ World.SVG.prototype.updateCountries = function(resize) {
     }
 }
 
-World.SVG.prototype.updateDisasters = function(boot, zoomOut, wipe) {
+World.SVG.prototype.updateDisasters = function(boot, zoomOut, reload, wipe) {
     var this_ = this;
     
-    if (wipe) {
+    if (reload) {
         this_.g.selectAll(".disaster-loc, .disaster-label").remove();
     }
     
@@ -428,32 +428,35 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut, wipe) {
     this_.clearCatSubTot();
     this_.disasters.forEach(function(d, i) {
         d.casualty = parseInt(d.casualty);
-        
-        // filter casualty range
-        if (d.casualty >= this_.minCas && d.casualty <= this_.maxCas) {
+        if (wipe) {
+            this_.disasterSet = [];
+        } else {
+            // filter casualty range
+            if (d.casualty >= this_.minCas && d.casualty <= this_.maxCas) {
 
-            // filter date range
-            if (getNumFromDate(d.start) >= getNumFromDate(this_.openDate) && getNumFromDate(d.start) <= getNumFromDate(this_.closeDate)) {
+                // filter date range
+                if (getNumFromDate(d.start) >= getNumFromDate(this_.openDate) && getNumFromDate(d.start) <= getNumFromDate(this_.closeDate)) {
 
-                // filter casualty type
-                if (this_.filters.length > 0) {
-                    this_.filters.forEach(function(f) {
-                        if (d.type == f.replace(/-/g, " ")) {
-                            
-                            // if filtering for country
-                            if (this_.cFilter) {
-                                
-                                // filter specific country
-                                if (d.country.toUpperCase() == this_.cFilter.toUpperCase()) {
+                    // filter casualty type
+                    if (this_.filters.length > 0) {
+                        this_.filters.forEach(function(f) {
+                            if (d.type == f.replace(/-/g, " ")) {
+
+                                // if filtering for country
+                                if (this_.cFilter) {
+
+                                    // filter specific country
+                                    if (d.country.toUpperCase() == this_.cFilter.toUpperCase()) {
+                                        this_.disasterSet.push(d);
+                                    }
+
+                                } else {
                                     this_.disasterSet.push(d);
+                                    this_.subCatTotSet[d.type] += d.casualty;
                                 }
-                                
-                            } else {
-                                this_.disasterSet.push(d);
-                                this_.subCatTotSet[d.type] += d.casualty;
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             }
         }
@@ -519,6 +522,12 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut, wipe) {
         .on("mouseout",  function(d,i) {
             this_.localDData.classed("hidden", true)
         })
+        .on("click", function() {
+            var id = $('#disaster-country-id').html();
+            var data = $('#country_code_'+id)[0]["__data__"];
+            this_.curCountry = data;
+            this_.zoomIn(data, d3.select('#country_code_'+id)[0][0]);
+        });
         
     if (boot) {
         d3.selectAll('.country-boundary, .country')
@@ -531,13 +540,13 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut, wipe) {
 }
 
 World.SVG.prototype.circleScale = function(d) {
-    return Math.max(Math.pow(d, .398)*this.mapScale, 3)/Math.sqrt(this.zoomSF);
+    return Math.max(Math.pow(d, .398)*this.mapScale, 3*this.mapScale)/Math.sqrt(this.zoomSF);
 }
 World.SVG.prototype.getUnderlyingData = function(country) {
     var this_ = this;
     var temp = this.countryData.filter(function(n) {return country == n.name;});
     if (temp.length == 1) {
-        return this_.cDataMeta[this_.cData].pre+addCommas(this_.dataByCC[this_.cData][temp[0].num][this_.closeDate[2]])+this_.cDataMeta[this_.cData].suf;
+        return this_.cDataMeta[this_.cData].pre+addCommas(this_.dataByCC[this_.cData][temp[0].num][this_.closeDate[2]])+this_.cDataMeta[this_.cData].suf+'<span id="disaster-country-id" class="hidden">'+temp[0].num+'</span>';
     } else {
         return "";
     }
@@ -610,11 +619,12 @@ World.SVG.prototype.setWindowHandlers = function() {
     });
     $(window).resize(function() {
         if (this_.zoomSF > 1) {
-            this_.zoomOut();
+            this_.zoomOut(true);
+        } else {
+            this_.redrawMap();
+            this_.updateCountries(true);
+            this_.updateDisasters(null, null, true);
         }
-        this_.redrawMap();
-        this_.updateCountries(true);
-        this_.updateDisasters(null, null, true);
     });
 }
 

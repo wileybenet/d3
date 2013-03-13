@@ -75,5 +75,9 @@ function getPadding(id) {
 }
 
 function getAnimSpeed(speed) {
-    return (100/Math.pow(speed, 2.86)+2)*8;
+    return (100/Math.pow(speed, 2.86)+2);
+}
+
+function getAnimStep(num) {
+    return Math.floor(Math.sqrt((1-(num-3)/(102))*100+3)/2);
 }

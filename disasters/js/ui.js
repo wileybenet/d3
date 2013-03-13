@@ -305,14 +305,11 @@ World.SVG.prototype.renderTimeSlider = function() {
     var initSpeed = 2.0;
     this_.animSpeed = getAnimSpeed(initSpeed);
         
-    var min = 1,
-        max = 1308;
-        
     $(function() {
         var ob = {
             range: true,
-            min: min,
-            max: max,
+            min: 1,
+            max: 1308,
             step: 1,
             animate: 150,
             values: [getNumFromDate(this_.openDate), getNumFromDate(this_.closeDate)],
@@ -345,6 +342,12 @@ World.SVG.prototype.renderTimeSlider = function() {
     
     $(document).delegate('#map-time-play', 'click', function() {
         var tSpan = 5; // years
+        
+        this_.reset.time.openDate = this_.openDate;
+        this_.reset.time.closeDate = this_.closeDate;
+        var min = getNumFromDate(this_.openDate),
+            max = getNumFromDate(this_.closeDate);
+                
         this_.continueAnimation = true;
         if (this_.openDate[2] == 2010) {
             this_.openDate = [1,1,1900];
@@ -431,8 +434,8 @@ World.SVG.prototype.playAnimation = function(min, max) {
             $('#map-time').slider("values", vals);
             d3.selectAll('.disaster-loc')
                 .classed("loc-filter-hover", true);
-            this_.openDate = getDate(6+getNumFromDate(this_.openDate));
-            this_.closeDate = getDate(6+getNumFromDate(this_.closeDate));
+            this_.openDate = getDate(getAnimStep(this_.animSpeed)+getNumFromDate(this_.openDate));
+            this_.closeDate = getDate(getAnimStep(this_.animSpeed)+getNumFromDate(this_.closeDate));
         }
         if (this_.continueAnimation) {
             d3.selectAll(".disaster-label").classed("hidden", false);
@@ -787,13 +790,19 @@ World.SVG.prototype.zoomIn = function(d, self) {
         .classed("country-focus", false);
     //d3.select(self).classed("country-focus", true);
 
+    this_.updateDisasters(null, null, null, true);
+
     var cent = this_.path.centroid(d);
     var box = self.getBBox();
     this_.zoomSF = this_.getCScaleFactor(d, box);
     var zoomX = -(cent[0] - this_.width/2/this_.zoomSF),
         zoomY = -(cent[1] - this_.height/2/this_.zoomSF);
         
-    this.g.transition().duration(800).each("end", this_.showHelp)
+    this.g.transition().duration(800)
+        .each("end", function() {
+            this_.showHelp();
+            this_.updateDisasters();
+        })
         .attr("transform", "scale(" + this_.zoomSF + ")" +" translate(" + (zoomX+this_.x/this_.zoomSF) + "," + (zoomY+this_.y/this_.zoomSF) + ")");
 
     d.selected = true;
@@ -801,16 +810,22 @@ World.SVG.prototype.zoomIn = function(d, self) {
     $('.country-label').css("font-size", 20/this_.zoomSF+"px");
 
     this_.cFilter = d.name;
-    this_.updateDisasters();
 }
 
 //---------------------------------------------------------------------------------- Zoom Out of Individual Country View ---------------------------------
 
-World.SVG.prototype.zoomOut = function() {
+World.SVG.prototype.zoomOut = function(resize) {
     var this_ = this;
     //d3.selectAll('.country').classed("country-focus", false);
     this.hideCountryWindow();
     this.g.transition().duration(800)
+        .each("end", function() {
+            if (resize) {
+                this_.redrawMap();
+                this_.updateCountries(true);
+                this_.updateDisasters(null, null, true);
+            }
+        })
         .attr("transform", "scale(1) translate("+this_.x+","+this_.y+")");
     $('.country-label').hide();
     $('.country-label').css("fill", "#000");
