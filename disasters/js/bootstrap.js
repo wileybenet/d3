@@ -1,6 +1,6 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.1.0
+// v 2.0
 // 
 // Bootstrap script
 // Defines the namespace and prototype functions for rendering and updating data

@@ -1,6 +1,6 @@
 
 // (c) 2013 Wiley Bennett
-// v 1.1.0
+// v 2.0
 //
 // UI render calls and general interaction
 // 
@@ -341,26 +341,25 @@ World.SVG.prototype.renderTimeSlider = function() {
     });
     
     $(document).delegate('#map-time-play', 'click', function() {
-        var tSpan = 5; // years
-        
-        this_.reset.time.openDate = this_.openDate;
-        this_.reset.time.closeDate = this_.closeDate;
-        var min = getNumFromDate(this_.openDate),
-            max = getNumFromDate(this_.closeDate);
+        if (!$(this).hasClass("play")) {        // play
+            var tSpan = 5; // years
+            this_.reset.time.openDate = this_.openDate;
+            this_.reset.time.closeDate = this_.closeDate;
+            var min = getNumFromDate(this_.openDate),
+                max = getNumFromDate(this_.closeDate);
                 
-        this_.continueAnimation = true;
-        if (this_.openDate[2] == 2010) {
-            this_.openDate = [1,1,1900];
-            this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
-        } else {
-            this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
-        }
-        var $this = $(this);
-        if (!$(this).hasClass("play")) {
+            this_.continueAnimation = true;
+            if (this_.openDate[2] == 2010) {
+                this_.openDate = [1,1,1900];
+                this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
+            } else {
+                this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
+            }
+            
             $(this).html(this_.icon.pause).addClass("play");
             $('#map-time-watermark').show();
             this_.playAnimation(min, max);
-        } else {
+        } else {                                // pause
             this_.continueAnimation = false;
         }
     });
