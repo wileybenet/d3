@@ -465,7 +465,7 @@ World.SVG.prototype.updateDisasters = function(boot, zoomOut, reload, wipe) {
     this.updateTotCasCounts();
         
     this_.disasterOb = this_.g.selectAll(".disaster-loc").data(this_.disasterSet, function(d) {return d.uid});
-    this_.disasterOb.exit().remove();
+    this_.disasterOb.exit().transition().duration(500).attr("r", 0).remove();
     this_.disasterOb.enter().append("svg:circle")
         .attr("class", function(d) {return "disaster-loc "+d.type.replace(/ /g, "-").toLowerCase()+"-loc"})
         .attr("cx", function(d) {return this_.projection([d.lng, d.lat])[0]})
