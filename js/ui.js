@@ -3,10 +3,10 @@
 // v 2.0
 //
 // UI render calls and general interaction
-// 
+//
 // PLAY
 //      Intro
-// 
+//
 // RENDER
 //      Binned Country Scale
 //      Timespan Slider
@@ -26,13 +26,13 @@
 World.SVG.prototype.playIntro = function(replay) {
     var this_ = this;
     this.introStep = 0;
-    
+
     // for redoing the intro
     $('.map-box').hide();
     $('#intro-replay').remove();
     $('#loading-screen').show();
     $('#vis-title-box').animate({top:((replay)?"30%":"45%"), left:"50%"});
-    
+
     // initiate
     $('#loading-screen').css({"background-image":"none"});
     $('#vis-title-box').animate({top:"30%"}, function() {
@@ -87,7 +87,7 @@ World.SVG.prototype.finishIntro = function() {
 
 World.SVG.prototype.loadIntro = function() {
     var this_ = this;
-    
+
     this.introSteps = {};
     this.introSteps.text = [
         "Welcome to the global disaster interactive visualization. The following is a brief introduction to the interface.",
@@ -105,7 +105,7 @@ World.SVG.prototype.loadIntro = function() {
         "#map-scale-box",
     ];
     this.introSteps.correction = [0,0,0,0,150,0];
-    
+
     $(document).delegate(".vis-intro-next, .vis-intro-skip", "click", function() {
         this_.introStep += 1;
         if ($(this).text() == "Skip")
@@ -144,15 +144,15 @@ World.SVG.prototype.renderScale = function() {
         .attr("id", "map-scale-box")
         .attr("class", "map-box");
         //$('#map-scale-box').draggable({distance: 10});
-            
+
     d3.select("#map-scale-box")
         .append("span")
         .attr("class", "map-scale-units");
-            
+
     d3.select("#map-scale-box")
         .append("div")
         .attr("id", "map-scale-picker");
-    
+
     $.each(this_.cDataMeta, function(k,v) {
         d3.select("#map-scale-picker")
             .append("div")
@@ -162,27 +162,27 @@ World.SVG.prototype.renderScale = function() {
             return false;
     });
     $('#'+this_.cData+"ID").addClass('map-scale-choice-selected');
-        
+
     this.updateScale();
-        
+
     $(document).delegate(".map-scale-bin", "mouseenter", function() {
         this_.curBin = $(this).attr("class");
         this_.curBin = this_.curBin.split(" ");
         this_.curBin = this_.curBin[1];
-            
+
         this_.selCont = [];
             $.each(this_.countries, function(k,v) {
                 if (v.bin == this_.curBin)
                     this_.selCont.push(v);
-            });    
-        
+            });
+
         d3.selectAll('.'+this_.curBin)
             .classed("selected", true);
-            
+
         $('.'+this_.curBin+'-label').show();
-            
+
     });
-    
+
     $(document).delegate(".map-scale-bin", "mouseleave", function() {
         var bin = $(this).attr("class");
         bin = bin.split(" ");
@@ -191,7 +191,7 @@ World.SVG.prototype.renderScale = function() {
             .classed("selected", false);
         $('.country-label').hide();
     });
-    
+
     $(document).delegate(".map-scale-choice", "click", function() {
         $('.map-scale-choice').removeClass('map-scale-choice-selected');
         $(this).addClass('map-scale-choice-selected');
@@ -200,7 +200,7 @@ World.SVG.prototype.renderScale = function() {
         this_.updateCountries();
         this_.updateScale();
     });
-    
+
     $(document).delegate("#map-scale-box", "mouseenter mouseleave", function(e) {
         if (e.type === "mouseenter") {
             $(this).find(".map-info-pop").stop(true,true).fadeIn();
@@ -208,7 +208,7 @@ World.SVG.prototype.renderScale = function() {
             $(this).find(".map-info-pop").stop(true).fadeOut();
         }
     });
-    
+
     d3.select("#map-scale-box")
         .append("div")
         .attr("id", "map-scale-info")
@@ -218,12 +218,12 @@ World.SVG.prototype.renderScale = function() {
 
 World.SVG.prototype.updateScale = function() {
     var this_ = this;
-    
+
     d3.selectAll(".map-scale-bin").remove();
     d3.selectAll(".map-scale-value").remove();
-    
+
     d3.select(".map-scale-units").html(this_.cDataMeta[this_.cData].units);
-    
+
     d3.select("#map-scale-box")
         .append("div")
         .attr("class", "map-scale-value map-scale-high")
@@ -232,7 +232,7 @@ World.SVG.prototype.updateScale = function() {
         .append("div")
         .attr("class", "map-scale-value map-scale-low")
         .html(addCommas(this_.cDataMeta[this_.cData].binLow));
-    
+
     for (var i=this_.binRange-1; i>=0;i--) {
         var step = (this_.cDataMeta[this_.cData].binHigh[this_.closeDate[2]]-this_.cDataMeta[this_.cData].binLow)/this_.binRange;
         d3.select("#map-scale-box")
@@ -247,7 +247,7 @@ World.SVG.prototype.updateScale = function() {
 
 World.SVG.prototype.renderTimeSlider = function() {
     var this_ = this;
-    
+
     d3.select("body")
         .append("div")
         .attr("id", "map-time-box")
@@ -258,33 +258,33 @@ World.SVG.prototype.renderTimeSlider = function() {
         .append("span")
         .attr("class", "slider-label")
         .text("Timespan");
-        
+
     d3.select("#map-time-box")
         .append("div")
         .attr("id", "map-time-amount");
-    
+
     d3.select("#map-time-box")
         .append("span")
         .attr("id", "map-time-play")
         .attr("class", "action button")
         .attr("title", "Play Time Animation")
         .html(this_.icon.play);
-    
+
     d3.select("#map-time-box")
         .append("span")
         .attr("id", "map-time-reset")
         .attr("class", "action button")
         .html("Reset");
-    
+
     d3.select("#map-time-box")
         .append("div")
         .attr("id", "map-time");
-        
+
     d3.select("#map")
         .append("div")
         .attr("id", "map-time-watermark")
         .attr("style", "font-size:"+($(window).height()/6)+"px");
-        
+
     var svg = d3.select("#map-time-box")
         .append("svg")
         .attr("id", "map-time-scale")
@@ -301,10 +301,10 @@ World.SVG.prototype.renderTimeSlider = function() {
     svg.append("g")
         .attr("transform", "translate(53,5)")
         .call(xAxis);
-    
+
     var initSpeed = 2.0;
     this_.animSpeed = getAnimSpeed(initSpeed);
-        
+
     $(function() {
         var ob = {
             range: true,
@@ -335,11 +335,11 @@ World.SVG.prototype.renderTimeSlider = function() {
             if (this_.curCountry)
                 this_.showCountryWindow(this_.curCountry);
         }
-        
+
         $("#map-time").slider(ob);
         $("#map-time-amount").html(getReadableMY(this_.openDate)+"&nbsp; &mdash; &nbsp;"+getReadableMY(this_.closeDate));
     });
-    
+
     $(document).delegate('#map-time-play', 'click', function() {
         if (!$(this).hasClass("play")) {        // play
             var tSpan = 5; // years
@@ -347,7 +347,7 @@ World.SVG.prototype.renderTimeSlider = function() {
             this_.reset.time.closeDate = this_.closeDate;
             var min = getNumFromDate(this_.openDate),
                 max = getNumFromDate(this_.closeDate);
-                
+
             this_.continueAnimation = true;
             if (this_.openDate[2] == 2010) {
                 this_.openDate = [1,1,1900];
@@ -355,7 +355,7 @@ World.SVG.prototype.renderTimeSlider = function() {
             } else {
                 this_.closeDate = [this_.openDate[0],this_.openDate[1],this_.openDate[2]+tSpan];
             }
-            
+
             $(this).html(this_.icon.pause).addClass("play");
             $('#map-time-watermark').show();
             this_.playAnimation(min, max);
@@ -363,18 +363,18 @@ World.SVG.prototype.renderTimeSlider = function() {
             this_.continueAnimation = false;
         }
     });
-    
+
     $(document).delegate('#map-time-reset', 'click', function() {
         this_.continueAnimation = false;
         $('#map-time').slider("values", [getNumFromDate(this_.reset.time.openDate), getNumFromDate(this_.reset.time.closeDate)]);
     });
-    
+
     d3.selectAll(".ui-slider-handle")
         .append("div")
         .attr("class", "ui-slider-handle-big");
-        
+
     this_.appendAnimSpeedSlider(initSpeed);
-        
+
     $(document).delegate('#map-time-box', 'mouseenter mouseleave', function(e) {
         if (e.type == "mouseenter") {
             $('#map-time-speed-label').stop(true,true).fadeIn(150);
@@ -386,11 +386,11 @@ World.SVG.prototype.renderTimeSlider = function() {
 
 World.SVG.prototype.appendAnimSpeedSlider = function(initSpeed) {
     var this_ = this;
-    
+
     d3.select("#map-time-box")
         .append("div")
         .attr("id", "map-time-speed");
-        
+
     $(function() {
         var ob = {
             orientation: "vertical",
@@ -406,7 +406,7 @@ World.SVG.prototype.appendAnimSpeedSlider = function(initSpeed) {
         };
         $("#map-time-speed").slider(ob);
     });
-    
+
     d3.select("#map-time-speed .ui-slider-handle")
         .append("div")
         .attr("class", "ui-slider-handle-big-right")
@@ -458,7 +458,7 @@ World.SVG.prototype.stopAnimation = function() {
 
 World.SVG.prototype.renderCasualtiesSlider = function() {
     var this_ = this;
-    
+
     d3.select("body")
         .append("div")
         .attr("id", "map-casualties-box")
@@ -468,7 +468,7 @@ World.SVG.prototype.renderCasualtiesSlider = function() {
         .append("span")
         .attr("class", "slider-label")
         .text("Casualties");
-        
+
     d3.select("#map-casualties-box")
         .append("div")
         .attr("id", "map-casualties-amount");
@@ -485,11 +485,11 @@ World.SVG.prototype.renderCasualtiesSlider = function() {
         .attr("id", "map-casualties-max")
         .attr("class", "map-casualties-input")
         .attr("action", "1");
-        
+
     d3.select("#map-casualties-box")
         .append("div")
         .attr("id", "map-casualties");
-    
+
     $(function() {
         function renderCasVals(min, max) {
             $("#map-casualties-min").val(min);
@@ -554,32 +554,32 @@ World.SVG.prototype.renderCasualtiesSlider = function() {
 
 World.SVG.prototype.renderFilter = function () {
     var this_ = this;
-    
+
     d3.select("body")
         .append("div")
         .attr("id", "map-filter-box")
         .attr("class", "map-box");
         $('#map-filter-box').draggable({
-            distance: 50, 
-            containment: "parent", 
+            distance: 50,
+            containment: "parent",
             axis: "x"
         });
-        
+
     d3.select("#map-filter-box")
         .append("div")
         .attr("class", "map-filter-title")
         .text("Disaster Type");
-        
+
     d3.select("#map-filter-box")
         .append("div")
         .attr("id", "map-filters");
-        
+
     d3.select("#map-filters")
             .append("div")
             .attr("id", "filter-all")
             .attr("class", "action")
             .text(((this_.filters.length == 0)?"Select All":"Clear All"));
-            
+
     this.filterSet.forEach(function(d) {
         d3.select("#map-filters")
             .append("div")
@@ -587,7 +587,7 @@ World.SVG.prototype.renderFilter = function () {
             .attr("id", "type-"+d.replace(/ /g, "-"))
             .html(d+'<span class="filter-color clear-back '+(($.inArray(d,this_.filters) >= 0)?"":"hidden")+' '+d.replace(/ /g, "-").toLowerCase()+'-loc">&nbsp;</span>');
     });
-    
+
     d3.selectAll(".map-filter")
         .append("span")
         .attr("class", "filter-tot-count")
@@ -644,7 +644,7 @@ World.SVG.prototype.renderFilter = function () {
         }
         this_.updateDisasters();
     });
-    
+
     this_.setFilterVals();
 }
 
@@ -667,11 +667,11 @@ World.SVG.prototype.setFilterVals = function(filter) {
 
 World.SVG.prototype.renderCountryWindow = function() {
     var this_ = this;
-    
+
     d3.select("body")
         .append("div")
         .attr("id", "country-data-box");
-        
+
     d3.select("#country-data-box")
         .append("div")
         .attr("class", "x")
@@ -680,11 +680,11 @@ World.SVG.prototype.renderCountryWindow = function() {
         .on("click", function() {
             this_.zoomOut();
         });
-        
+
     d3.select("#country-data-box")
         .append("div")
         .attr("class", "country-data-title");
-        
+
     d3.select("#country-data-box")
         .append("div")
         .attr("class", "country-data-content")
@@ -693,10 +693,10 @@ World.SVG.prototype.renderCountryWindow = function() {
 
 World.SVG.prototype.showCountryWindow = function(c) {
     var this_ = this;
-    
+
     $('#country-data-box').fadeIn();
     $('.country-data-title').html(c.name);
-    
+
     var content = "";
     $.each(this_.cDataMeta, function(k,v) {
         if (k != "blank")
@@ -704,13 +704,13 @@ World.SVG.prototype.showCountryWindow = function(c) {
         return false;
     });
     content += '<tr><td>'+this_.cDataMeta.totCas.tooltip.replace(/: /g, "")+'</td><td>'+this_.cDataMeta.totCas.pre+'<b>'+c["totCas"]+'</b>'+this_.cDataMeta.totCas.suf+'</td></tr>';
-    
+
     $('.country-data-content-table').html(content);
 }
 
 World.SVG.prototype.hideCountryWindow = function(c) {
     var this_ = this;
-    
+
     $('#country-data-box').hide();
     $('.country-data-title').html("");
     $('.country-data-content-table').html("");
@@ -723,7 +723,7 @@ World.SVG.prototype.getDisasterLoc = function(d) {
     var lat = parseFloat(d.lat),
         lng = parseFloat(d.lng);
     var pend = this.pendingLoc = Math.random();
-    $.post('retrieve.php', {lat: lat, lng: lng}, function(json) {
+    $.get('http://maps.googleapis.com/maps/api/geocode/json?sensor=false', { latlng: lat+','+lng }, function(json) {
         if (pend == this_.pendingLoc) {
             if (json.status == "OK") {
                 var set = json.results.splice(json.results.length-2, 1).reverse();
@@ -780,10 +780,10 @@ World.SVG.prototype.showHelp = function() {
 
 World.SVG.prototype.zoomIn = function(d, self) {
     var this_ = this;
-    
+
     $('.country-label').css("fill", "#666");
     $('.country-label').css("font-size", "9px").hide();
-    
+
     this.showCountryWindow(d);
     d3.selectAll('.country')
         .classed("country-focus", false);
@@ -796,7 +796,7 @@ World.SVG.prototype.zoomIn = function(d, self) {
     this_.zoomSF = this_.getCScaleFactor(d, box);
     var zoomX = -(cent[0] - this_.width/2/this_.zoomSF),
         zoomY = -(cent[1] - this_.height/2/this_.zoomSF);
-        
+
     this.g.transition().duration(800)
         .each("end", function() {
             this_.showHelp();
@@ -839,7 +839,7 @@ World.SVG.prototype.zoomOut = function(resize) {
 
 World.SVG.prototype.renderSignature = function() {
     var this_ = this;
-    
+
     d3.select("body")
         .append("div")
         .attr("id", "signature")
@@ -866,12 +866,12 @@ World.SVG.prototype.renderSignature = function() {
         .html('Disaster Data: <a href="http://www.emdat.be" target="_blank">EM-DAT</a><br />'+
               'GDP data: <a href="http://www.gapminder.org/world/" target="_blank">Gapminder</a>');
         $('#sources-pop').prepend('<div class="darr"><div class="darr-fill"></div></div>');
-    
+
     $(document).delegate("#portfolio-link", "click", function() {
         window.open("http://w.bmdware.com/portfolio/");
         window.focus();
     });
-    
+
     $(document).delegate("#sources-link", "click", function() {
         d3.select("#sources-pop").classed("hidden", false);
     });
@@ -887,5 +887,5 @@ World.SVG.prototype.renderSignature = function() {
             d3.select("#sources-pop").classed("hidden", true);
         }
     });
-    
+
 }
