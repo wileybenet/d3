@@ -723,7 +723,7 @@ World.SVG.prototype.getDisasterLoc = function(d) {
     var lat = parseFloat(d.lat),
         lng = parseFloat(d.lng);
     var pend = this.pendingLoc = Math.random();
-    $.get('http://maps.googleapis.com/maps/api/geocode/json?sensor=false', { latlng: lat+','+lng }, function(json) {
+    $.get('https://maps.googleapis.com/maps/api/geocode/json?sensor=false', { latlng: lat+','+lng }, function(json) {
         if (pend == this_.pendingLoc) {
             if (json.status == "OK") {
                 var set = json.results.splice(json.results.length-2, 1).reverse();
